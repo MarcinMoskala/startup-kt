@@ -7,7 +7,7 @@ Projekt ma trzy moduły:
 - `app` (Compose Multiplatform: Wasm + desktop JVM): gra z botami w przeglądarce (desktop i mobile) oraz jako aplikacja desktopowa.
 
 ## Zagraj
-- Online: https://marcinmoskala.github.io/startup-kt/
+- Online: https://marcinmoskala.com/startup-kt/
 - Desktop: `./gradlew :app:run`
 
 ## Gra w przeglądarce
