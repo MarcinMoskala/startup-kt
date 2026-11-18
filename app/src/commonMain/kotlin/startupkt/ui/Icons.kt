@@ -35,7 +35,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /** All icons are drawn as vectors: the browser canvas font has no emoji glyphs. */
-enum class Glyph { FRONTEND, BACKEND, AGENT, COIN, STAR, TEAM, FEATURE, LIBRARY, BUSINESS }
+enum class Glyph { FRONTEND, BACKEND, AGENT, COIN, STAR, TEAM, FEATURE, LIBRARY, BUSINESS, CHAIN }
 
 fun glyphOf(r: Res) = when (r) {
     Res.FRONTEND -> Glyph.FRONTEND
@@ -105,6 +105,12 @@ private fun DrawScope.drawGlyph(g: Glyph, tint: Color?) {
             drawRect(Palette.bg, Offset(w * 0.42f, h * 0.3f), Size(w * 0.32f, h * 0.06f))
             drawRect(Palette.bg, Offset(w * 0.42f, h * 0.45f), Size(w * 0.24f, h * 0.06f))
         }
+        Glyph.CHAIN -> { // two links
+            val c = tint ?: Palette.kotlinLight
+            val st = Stroke(width = w * 0.13f)
+            drawRoundRect(c, Offset(w * 0.06f, h * 0.36f), Size(w * 0.5f, h * 0.3f), CornerRadius(w * 0.15f), style = st)
+            drawRoundRect(c, Offset(w * 0.44f, h * 0.36f), Size(w * 0.5f, h * 0.3f), CornerRadius(w * 0.15f), style = st)
+        }
         Glyph.BUSINESS -> { // briefcase
             val c = tint ?: Palette.of(CardType.BUSINESS)
             drawRoundRect(c, Offset(w * 0.34f, h * 0.14f), Size(w * 0.32f, h * 0.2f), CornerRadius(w * 0.06f), style = Stroke(width = sw))
@@ -160,15 +166,16 @@ fun RichText(text: String, style: TextStyle = Type.body, modifier: Modifier = Mo
             Canvas(Modifier.fillMaxSize()) { drawGlyph(g, null) }
         }
     }
-    BasicText(annotated, modifier, style = style, maxLines = maxLines, inlineContent = inline)
+    BasicText(annotated, modifier, style = style, maxLines = maxLines, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, inlineContent = inline)
 }
 
-/** A number followed by an icon, e.g. "6 ★". */
+/** A number with an icon, e.g. "6 ★" or (iconFirst) "★ 6". */
 @Composable
-fun Amount(value: Int, glyph: Glyph, size: TextUnit = 14.sp, color: Color = Palette.text, prefix: String = "") {
+fun Amount(value: Int, glyph: Glyph, size: TextUnit = 14.sp, color: Color = Palette.text, prefix: String = "", iconFirst: Boolean = false) {
     androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+        val gap = (size.value * 0.25f).dp
+        if (iconFirst) { Icon(glyph, (size.value * 1.15f).dp); androidx.compose.foundation.layout.Spacer(Modifier.size(gap)) }
         BasicText("$prefix$value", style = TextStyle(color = color, fontSize = size, fontWeight = FontWeight.Bold))
-        androidx.compose.foundation.layout.Spacer(Modifier.size((size.value * 0.25f).dp))
-        Icon(glyph, (size.value * 1.15f).dp)
+        if (!iconFirst) { androidx.compose.foundation.layout.Spacer(Modifier.size(gap)); Icon(glyph, (size.value * 1.15f).dp) }
     }
 }
