@@ -167,7 +167,6 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
                 used[u] = false
             }
             if (r != Res.AGENT) rec(i + 1, coins + freelancer, bought + r, subs)
-            else if (rules.agentFreelancerPrice > 0) rec(i + 1, coins + rules.agentFreelancerPrice, bought + r, subs)
         }
         rec(0, 0, emptyList(), 0)
         return best

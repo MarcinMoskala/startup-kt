@@ -20,6 +20,7 @@ The game has **3 Sprints**. In each Sprint everyone gets **5 cards**. Then:
 4. After **4 picks**, discard the last card.
 
 **Libraries 📚** score 2⭐ and make the two features printed on them **free for you**.
+Three small Sprint I features work the same way for one Sprint III feature: **Login Screen → GDPR Compliance**, **Health-check Endpoint → Security Audit**, **Dark Mode → Accessibility**.
 You can't build two copies of the same card.
 
 ## Roadmap

@@ -30,6 +30,7 @@ private fun business(
 /**
  * "Startup.kt" v4 content (v3 cards + startup roadmaps) (English, print-ready).
  * Merged from 10 playtest reports + Monte Carlo balance runs. Every library unlocks two features (its "free with" targets);
+ * three Sprint I features (Login Screen, Health-check, Dark Mode) also unlock one Sprint III feature;
  * all chain targets exist at every player count where their library does.
  */
 object DefaultRuleset {
@@ -86,14 +87,14 @@ object DefaultRuleset {
         // ======================= Sprint II: "Beta" =======================
         team("senior-compose-dev", "Senior Compose Dev", 2, 1, listOf(F), listOf(F), copies = listOf(3, 4),
             desc = "Has opinions about remember vs rememberSaveable, and they are right."),
-        team("senior-backend-dev", "Senior Backend Dev", 2, 1, listOf(B), listOf(B), copies = listOf(3, 4),
+        team("senior-backend-dev", "Senior Backend Dev", 2, 0, listOf(B), listOf(B), copies = listOf(3, 4),
             desc = "Knows why the database is slow before you finish describing the bug."),
         team("fullstack-senior", "Full-stack Senior", 2, 2, listOf(F), listOf(B), copies = listOf(3, 5),
             desc = "The unicorn hire: equally at home in a Composable and in a query plan."),
         team("agents-with-mcp", "Agents with MCP", 2, 3, listOf(A), listOf(A), freeWith = "claude-code",
             desc = "Give your agents real tools over MCP and they stop guessing and start shipping."),
 
-        team("qa-engineer", "QA Engineer", 2, 2, listOf(F, B), copies = listOf(5),
+        team("qa-engineer", "QA Engineer", 2, 1, listOf(F, B), copies = listOf(5),
             desc = "Finds the bug in the feature you demoed yesterday, on both platforms."),
 
         library("sqldelight", "SQLDelight", 2, listOf(F, B),
@@ -155,15 +156,15 @@ object DefaultRuleset {
             desc = "A CRUD screen over every table: the most-used feature nobody outside sees."),
         feature("kotlinconf-keynote", "KotlinConf Keynote Demo", 3, listOf(B, B, A), 6, freeWith = "kotlin-wasm",
             desc = "Your agent live-codes a Wasm app on the main stage; the Wi-Fi holds."),
-        feature("accessibility", "Accessibility", 3, listOf(F, F, A), 5, freeWith = "compose-multiplatform",
-            desc = "contentDescription everywhere, with an agent auditing every screen."),
+        feature("accessibility", "Accessibility", 3, listOf(F, F, A), 5, freeWith = "dark-mode",
+            desc = "Contrast was fixed in Dark Mode; now contentDescription everywhere, with an agent auditing every screen."),
         feature("home-widgets", "Home Screen Widgets", 3, listOf(F, F, F), 5, freeWith = "sqldelight", copies = listOf(4),
             desc = "Your app, glanceable without opening it, fed from the local database."),
-        feature("security-audit", "Security Audit", 3, listOf(B, B, A), 5, copies = listOf(4),
+        feature("security-audit", "Security Audit", 3, listOf(B, B, A), 5, freeWith = "health-check", copies = listOf(4),
             desc = "An agent fuzzes every endpoint; the auditor still finds the password in application.yaml."),
-        feature("localization", "Localization", 3, listOf(F, A), 4, copies = listOf(4),
-            desc = "An agent translates every string into 30 languages; German still overflows the button."),
-        feature("gdpr-compliance", "GDPR Compliance", 3, listOf(B, B, F), 5, copies = listOf(5),
+        feature("localization", "Localization", 3, listOf(F, A), 4, freeWith = "compose-multiplatform", copies = listOf(4),
+            desc = "Compose resources plus an agent: every stringResource() in 30 languages; German still overflows the button."),
+        feature("gdpr-compliance", "GDPR Compliance", 3, listOf(B, B, F), 5, freeWith = "login-screen", copies = listOf(5),
             desc = "A cookie banner, a data export endpoint and a lawyer who finally smiles."),
         feature("product-hunt-launch", "Product Hunt Launch", 3, listOf(F, B, A), 5, freeWith = "amper", copies = listOf(5),
             desc = "One Amper build for every platform and a launch-day upvote army."),

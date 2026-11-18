@@ -107,6 +107,24 @@ class EngineTest {
     }
 
     @Test
+    fun optionalOneStagePerSprint() {
+        val e = Engine(DefaultRuleset.ruleset.copy(rules = DefaultRuleset.ruleset.rules.copy(oneStagePerSprint = true)))
+        var s = e.newGame(3, 11)
+        s = s.copy(players = s.players.map { it.copy(coins = 20) })
+        s = e.submit(s, 0, Action.Stage(s.player(0).hand.first()))
+        repeat(2) { seat -> s = e.submit(s, seat + 1, Action.Sell(s.player(seat + 1).hand.first())) }
+        assertEquals(1, s.player(0).lastStageSprint)
+        assertTrue(e.options(s, 0).none { it.action.startsWith("stage:") })
+        assertFailsWith<IllegalActionException> { e.submit(s, 0, Action.Stage(s.player(0).hand.first())) }
+    }
+
+    @Test
+    fun sprintIFeaturesUnlockSprintIIIFeatures() {
+        val p = PlayerState(0, "x", "companion", coins = 0, hand = emptyList(), built = listOf("health-check"))
+        assertTrue(engine.payment(p, engine.ruleset.card("security-audit"))!!.free)
+    }
+
+    @Test
     fun duelStageWithDiscard() {
         var s = engine.newGame(2, 5)
         s = s.copy(players = s.players.map { it.copy(coins = 20) })

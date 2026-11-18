@@ -15,7 +15,8 @@
         "agentTokenCost": 1,
         "duel": true,
         "duelHandSize": 8,
-        "duelDeckPlayers": 4
+        "duelDeckPlayers": 4,
+        "oneStagePerSprint": false
     },
     "cards": [
         {
@@ -482,7 +483,7 @@
                 3,
                 4
             ],
-            "costCoins": 1,
+            "costCoins": 0,
             "cost": [],
             "freeWith": null,
             "produces": [
@@ -555,7 +556,7 @@
             "copies": [
                 5
             ],
-            "costCoins": 2,
+            "costCoins": 1,
             "cost": [],
             "freeWith": null,
             "produces": [
@@ -1149,12 +1150,12 @@
                 "FRONTEND",
                 "AGENT"
             ],
-            "freeWith": "compose-multiplatform",
+            "freeWith": "dark-mode",
             "produces": [],
             "points": 5,
             "coins": 0,
             "special": null,
-            "description": "contentDescription everywhere, with an agent auditing every screen."
+            "description": "Contrast was fixed in Dark Mode; now contentDescription everywhere, with an agent auditing every screen."
         },
         {
             "id": "home-widgets",
@@ -1191,7 +1192,7 @@
                 "BACKEND",
                 "AGENT"
             ],
-            "freeWith": null,
+            "freeWith": "health-check",
             "produces": [],
             "points": 5,
             "coins": 0,
@@ -1211,12 +1212,12 @@
                 "FRONTEND",
                 "AGENT"
             ],
-            "freeWith": null,
+            "freeWith": "compose-multiplatform",
             "produces": [],
             "points": 4,
             "coins": 0,
             "special": null,
-            "description": "An agent translates every string into 30 languages; German still overflows the button."
+            "description": "Compose resources plus an agent: every stringResource() in 30 languages; German still overflows the button."
         },
         {
             "id": "gdpr-compliance",
@@ -1232,7 +1233,7 @@
                 "BACKEND",
                 "FRONTEND"
             ],
-            "freeWith": null,
+            "freeWith": "login-screen",
             "produces": [],
             "points": 5,
             "coins": 0,

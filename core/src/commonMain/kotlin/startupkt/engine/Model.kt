@@ -138,8 +138,6 @@ data class Rules(
     val duelDeckPlayers: Int = 4,
     /** Roadmap: at most one stage per Sprint (so nobody rushes to Exit in Sprint I). */
     val oneStagePerSprint: Boolean = false,
-    /** Price of hiring a 🤖 freelancer for a 🤖 slot; 0 = 🤖 cannot be hired. */
-    val agentFreelancerPrice: Int = 0,
 ) {
     fun isDuel(players: Int) = duel && players == 2
     fun handSize(players: Int) = if (isDuel(players)) duelHandSize else handSize
