@@ -28,7 +28,7 @@ private fun business(
 ) = Card(id, name, BUSINESS, sprint, copies, cost = cost, coins = coins, points = points, special = special, description = desc)
 
 /**
- * "Startup.kt" v3 content (English, print-ready).
+ * "Startup.kt" v4 content (v3 cards + startup roadmaps) (English, print-ready).
  * Merged from 10 playtest reports + Monte Carlo balance runs. Every library unlocks two features (its "free with" targets);
  * all chain targets exist at every player count where their library does.
  */
@@ -182,31 +182,63 @@ object DefaultRuleset {
             desc = "Your GitHub stars finally count: you know these libraries from the inside."),
     )
 
+    /** v4 roadmap stage names: MVP → Product-Market Fit → Exit. */
+    private fun mvp(vararg cost: Res, points: Int = 0, coins: Int = 0, text: String) =
+        RoadmapStage("MVP", cost.toList(), points = points, coins = coins, text = text)
+
+    private fun exit(vararg cost: Res, points: Int, text: String = "$points⭐") =
+        RoadmapStage("Exit", cost.toList(), points = points, text = text)
+
     val startups: List<Startup> = listOf(
         Startup(
-            "companion", "Companion (dating)", listOf(listOf(F)), startCoins = 5, teamDiscount = 1,
-            ability = "Team cards cost you 1💰 less.",
+            "companion", "Companion (dating)", listOf(listOf(F)), startCoins = 4,
+            ability = "Product-Market Fit: end: 1⭐ per your 👥.",
             description = "companion object: the one you always come back to. A dating app that lives and dies by its UI.",
+            stages = listOf(
+                mvp(F, F, coins = 3, points = 1, text = "+3💰, 1⭐"),
+                RoadmapStage("Product-Market Fit", listOf(F, B), special = Special.PointsPer(TEAM, 1), text = "End: 1⭐ per your 👥"),
+                exit(F, F, B, points = 5),
+            ),
         ),
         Startup(
-            "suspend-fun-travel", "suspend fun Travel", listOf(listOf(B)), startCoins = 4, leftoverCoins = 1,
-            ability = "When a card is left over at the end of a Sprint, gain 1💰.",
+            "suspend-fun-travel", "suspend fun Travel", listOf(listOf(B)), startCoins = 4,
+            ability = "Product-Market Fit: +2💰 at every Sprint end.",
             description = "Bookings that suspend politely while the airline API thinks about it.",
+            stages = listOf(
+                mvp(B, B, coins = 3, points = 1, text = "+3💰, 1⭐"),
+                RoadmapStage("Product-Market Fit", listOf(B, F), coins = 1, sprintCoins = 2, text = "+1💰 now, +2💰 at every Sprint end"),
+                exit(B, B, F, points = 5),
+            ),
         ),
         Startup(
-            "sealed-deals", "Sealed Deals (e-commerce)", listOf(listOf(B)), startCoins = 6, sellValue = 4,
-            ability = "Selling a card gives you 4💰.",
+            "sealed-deals", "Sealed Deals (e-commerce)", listOf(listOf(B)), startCoins = 5,
+            ability = "Product-Market Fit: selling gives 5💰.",
             description = "sealed class Order: every state handled, no else branch, no lost parcels.",
+            stages = listOf(
+                mvp(B, B, coins = 4, points = 1, text = "+4💰, 1⭐"),
+                RoadmapStage("Product-Market Fit", listOf(B, F), sellValue = 5, points = 1, text = "Selling gives 5💰, 1⭐"),
+                exit(B, B, F, points = 5),
+            ),
         ),
         Startup(
-            "by-lazy-studio", "by lazy Studio (games)", listOf(listOf(F)), startCoins = 3, libraryCoins = 2,
-            ability = "Gain 2💰 whenever you build a Library.",
+            "by-lazy-studio", "by lazy Studio (games)", listOf(listOf(F)), startCoins = 3,
+            ability = "Product-Market Fit: end: 1⭐ per your 📚.",
             description = "Assets load by lazy, and so does the team on Fridays.",
+            stages = listOf(
+                mvp(F, F, coins = 3, points = 1, text = "+3💰, 1⭐"),
+                RoadmapStage("Product-Market Fit", listOf(F, B), points = 3, special = Special.PointsPer(LIBRARY, 1), text = "3⭐; end: 1⭐ per your 📚"),
+                exit(F, F, B, points = 4),
+            ),
         ),
         Startup(
-            "nullsafe-bank", "NullSafe Bank", listOf(listOf(B)), startCoins = 4, coinsPerPoint = 2,
-            ability = "At the end, your 💰 are worth 1⭐ per 2💰.",
+            "nullsafe-bank", "NullSafe Bank", listOf(listOf(B)), startCoins = 4,
+            ability = "Product-Market Fit: your 💰 are worth 1⭐ per 2💰.",
             description = "A fintech where every balance is non-null and every ledger lives on the backend.",
+            stages = listOf(
+                mvp(B, B, coins = 3, points = 1, text = "+3💰, 1⭐"),
+                RoadmapStage("Product-Market Fit", listOf(B, F), coins = 3, special = Special.CoinRate(2), text = "+3💰; end: 1⭐ per 2💰"),
+                exit(B, B, F, points = 5),
+            ),
         ),
     )
 

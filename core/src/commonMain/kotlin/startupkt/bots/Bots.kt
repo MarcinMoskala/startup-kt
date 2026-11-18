@@ -71,6 +71,8 @@ class HeuristicBot(
     val coinWeight: Double = 1.0,
     val featureBonus: Double = 0.0,
     val noise: Double = 0.15,
+    /** How much the bot likes roadmap stages (1.0 = neutral estimate). */
+    val roadmapWeight: Double = 0.7,
 ) : Bot {
     override fun choose(ctx: BotContext): Action {
         val v = ctx.view
@@ -101,6 +103,7 @@ class HeuristicBot(
         val remaining = ((sprints - sprint) * picks + (picks - pick)).toDouble()
         val frac = remaining / total
         if (o.payment == null) return o.gain / rate * coinWeight
+        o.stage?.let { return stageValue(o, it, ruleset, sprint, sprints, remaining, frac, coins, built) }
         val c = o.card
         var v = c.points.toDouble()
         if (c.type == CardType.FEATURE) v += featureBonus
@@ -119,6 +122,30 @@ class HeuristicBot(
             v += libraryWeight * unlocks.sumOf { it.points } / 3.0
         }
         return v
+    }
+
+    /** Estimated value of completing a roadmap stage now (the tucked card is lost, so prefer burying a strong card). */
+    private fun stageValue(
+        o: Option, st: RoadmapStage, ruleset: Ruleset, sprint: Int, sprints: Int, remaining: Double, frac: Double, coins: Int, built: List<Card>,
+    ): Double {
+        val rate = ruleset.rules.coinsPerPoint.toDouble()
+        val sprintEnds = (sprints - sprint + 1).toDouble()
+        var v = st.points.toDouble()
+        v += (o.gain - o.payment!!.coins) / rate * coinWeight
+        v += st.sprintCoins * sprintEnds / rate * coinWeight
+        st.sellValue?.let { v += (it - ruleset.rules.sellValue) * remaining * 0.25 / rate }
+        v += st.teamDiscount * remaining * 0.15 / rate
+        v += st.libraryCoins * remaining * 0.1 / rate
+        when (val s = st.special) {
+            is Special.PointsPer -> v += (built.count { it.type == s.type } + remaining * if (s.type == CardType.LIBRARY) 0.12 else 0.3) * s.points
+            is Special.CoinRate -> v += coins / s.coinsPerPoint.toDouble() - coins / rate + remaining * 0.3
+            is Special.FreelancerPrice -> v += productionWeight * frac * 1.5
+            is Special.CoinsPer -> {}
+            null -> {}
+        }
+        // Completing a stage opens the next one.
+        v += 0.8 * frac
+        return v * roadmapWeight + 0.05 * o.card.points
     }
 }
 
@@ -144,12 +171,17 @@ class MonteCarloBot(
             return (if (ctx.view.mustDiscard) only.withDiscard(chooseDiscard(engine, ctx.sampleWorld(), seat, only, rolloutPolicy)) else only) to null
         }
         // Prune to the most promising candidates by heuristic to spend rollouts where it matters; always keep one sell.
-        if (actions.size > candidateLimit) {
+        // Roadmap options differ only in the tucked card, so keep at most two of them.
+        run {
             val v = ctx.view
             val ranked = v.options.sortedByDescending {
                 rolloutPolicy.value(it, ctx.ruleset, v.sprint, v.pick, v.sprints, v.picksPerSprint, v.coins, v.built)
             }.map { Action.parse(it.action) }
-            actions = (ranked.take(candidateLimit - 1) + ranked.first { it is Action.Sell }).distinct()
+            val stages = ranked.filterIsInstance<Action.Stage>().take(2)
+            val trimmed = ranked.filter { it !is Action.Stage || it in stages }
+            if (trimmed.size > candidateLimit || trimmed.size < ranked.size) {
+                actions = (trimmed.take(candidateLimit - 1) + trimmed.first { it is Action.Sell }).distinct()
+            }
         }
         if (ctx.view.mustDiscard) {
             val world = ctx.sampleWorld()

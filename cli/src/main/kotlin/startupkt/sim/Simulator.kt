@@ -59,6 +59,9 @@ data class SimulationReport(
     val botStats: List<BotStats>,
     /** How players built their startup (classified from final tableau): share of players and their win rate. */
     val archetypes: Map<String, ArchetypeStats>,
+    /** Completed roadmap stages at game end: share of players and their win rate. */
+    val stages: Map<Int, ArchetypeStats> = emptyMap(),
+    val avgStages: Double = 0.0,
     val cards: List<CardStats>,
 )
 
@@ -141,6 +144,8 @@ class Simulator(private val engine: Engine) {
         val cardScore = mutableMapOf<String, Double>()
         val startupAcc = mutableMapOf<String, DoubleArray>()
         val archAcc = mutableMapOf<String, DoubleArray>()
+        val stageAcc = sortedMapOf<Int, DoubleArray>()
+        var stageSum = 0.0
         val seatWins = DoubleArray(players)
         val comps = mutableMapOf<String, Double>()
         val byType = mutableMapOf<String, Double>()
@@ -183,6 +188,9 @@ class Simulator(private val engine: Engine) {
                 archAcc.getOrPut(archetypeOf(ruleset, p, free)) { DoubleArray(2) }.let { it[0]++; it[1] += win }
                 botAcc.getOrPut(rec.seating[p.seat]) { DoubleArray(4) }.let { it[0]++; it[1] += win; it[2] += s.total; it[3] += ranks[p.seat] }
                 startupAcc.getOrPut(p.startup) { DoubleArray(2) }.let { it[0]++; it[1] += win }
+                stageAcc.getOrPut(p.stagesDone) { DoubleArray(2) }.let { it[0]++; it[1] += win }
+                stageSum += p.stagesDone
+                comps.merge("roadmap", s.roadmap.toDouble(), Double::plus)
                 seatWins[p.seat] += win
                 comps.merge("features", s.features.toDouble(), Double::plus)
                 comps.merge("libraries", s.libraries.toDouble(), Double::plus)
@@ -232,6 +240,8 @@ class Simulator(private val engine: Engine) {
             botStats = botAcc.map { (b, a) -> BotStats(b, a[0].toInt(), a[1], a[1] / a[0], a[1] / a[0] * players, a[2] / a[0], a[3] / a[0]) }
                 .sortedByDescending { it.winRate },
             archetypes = archAcc.mapValues { (_, a) -> ArchetypeStats(a[0] / pg, a[1] / a[0]) },
+            stages = stageAcc.mapValues { (_, a) -> ArchetypeStats(a[0] / pg, a[1] / a[0]) },
+            avgStages = stageSum / pg,
             cards = ruleset.cards.filter { cardBuilt.containsKey(it.id) || cardSold.containsKey(it.id) }.map { c ->
                 val b = cardBuilt[c.id] ?: 0
                 CardStats(

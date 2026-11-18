@@ -62,7 +62,33 @@ data class Card(
     val description: String = "",
 )
 
-/** A starting card: one resource, starting money and a tiny ability that plays on its name. */
+/**
+ * One step of a startup's roadmap (like a 7 Wonders wonder stage). Pay its cost and tuck any card from your hand
+ * face down under your startup. Stages are done in order; each can be done once.
+ */
+@Serializable
+data class RoadmapStage(
+    val name: String,
+    val cost: List<Res> = emptyList(),
+    val costCoins: Int = 0,
+    val points: Int = 0,
+    /** Gained immediately. */
+    val coins: Int = 0,
+    /** From now on Team cards cost this many 💰 less. */
+    val teamDiscount: Int = 0,
+    /** From now on selling gives this many 💰. */
+    val sellValue: Int? = null,
+    /** From now on gain this many 💰 whenever you build a Library. */
+    val libraryCoins: Int = 0,
+    /** From now on gain this many 💰 at the end of every Sprint (including the one in which the stage was done). */
+    val sprintCoins: Int = 0,
+    /** Same meaning as on cards: CoinsPer (immediately), PointsPer (end), FreelancerPrice, CoinRate. */
+    val special: Special? = null,
+    /** Effect text printed on the startup board. */
+    val text: String = "",
+)
+
+/** A starting card: one resource, starting money and a roadmap (v4) or a tiny ability (v3). */
 @Serializable
 data class Startup(
     val id: String,
@@ -82,6 +108,8 @@ data class Startup(
     val coinsPerPoint: Int? = null,
     /** Ability text printed on the card. */
     val ability: String = "",
+    /** Roadmap stages (v4). Empty = no roadmap action. */
+    val stages: List<RoadmapStage> = emptyList(),
     val description: String = "",
 )
 
@@ -108,6 +136,10 @@ data class Rules(
     val duel: Boolean = false,
     val duelHandSize: Int = 8,
     val duelDeckPlayers: Int = 4,
+    /** Roadmap: at most one stage per Sprint (so nobody rushes to Exit in Sprint I). */
+    val oneStagePerSprint: Boolean = false,
+    /** Price of hiring a 🤖 freelancer for a 🤖 slot; 0 = 🤖 cannot be hired. */
+    val agentFreelancerPrice: Int = 0,
 ) {
     fun isDuel(players: Int) = duel && players == 2
     fun handSize(players: Int) = if (isDuel(players)) duelHandSize else handSize
@@ -163,14 +195,21 @@ sealed interface Action {
     @SerialName("sell")
     data class Sell(override val cardId: String, override val discard: String? = null) : Action
 
+    /** Tuck [cardId] under your startup to complete the next roadmap stage. */
+    @Serializable
+    @SerialName("stage")
+    data class Stage(override val cardId: String, override val discard: String? = null) : Action
+
     fun withDiscard(id: String?): Action = when (this) {
         is Build -> copy(discard = id)
         is Sell -> copy(discard = id)
+        is Stage -> copy(discard = id)
     }
 
     fun encode(): String = when (this) {
         is Build -> "build:$cardId"
         is Sell -> "sell:$cardId"
+        is Stage -> "stage:$cardId"
     } + (discard?.let { ",discard:$it" } ?: "")
 
     companion object {
@@ -178,7 +217,7 @@ sealed interface Action {
         fun parse(text: String): Action {
             val parts = text.trim().split(",").map { it.trim() }
             val (verb, id) = parts[0].split(":", limit = 2).takeIf { it.size == 2 }
-                ?: throw IllegalArgumentException("Action must look like 'build:<cardId>' or 'sell:<cardId>' (duel: add ',discard:<cardId>'), got '$text'")
+                ?: throw IllegalArgumentException("Action must look like 'build:<cardId>', 'sell:<cardId>' or 'stage:<cardId>' (duel: add ',discard:<cardId>'), got '$text'")
             val discard = parts.getOrNull(1)?.let { d ->
                 val (k, v) = d.split(":", limit = 2).takeIf { it.size == 2 && it[0] in setOf("discard", "burn", "d") }
                     ?: throw IllegalArgumentException("Expected ',discard:<cardId>', got '$d'")
@@ -187,7 +226,8 @@ sealed interface Action {
             return when (verb.lowercase()) {
                 "build", "b" -> Build(id, discard)
                 "sell", "s" -> Sell(id, discard)
-                else -> throw IllegalArgumentException("Unknown action verb '$verb' (use build or sell)")
+                "stage", "roadmap", "r" -> Stage(id, discard)
+                else -> throw IllegalArgumentException("Unknown action verb '$verb' (use build, sell or stage)")
             }
         }
     }
@@ -203,7 +243,13 @@ data class PlayerState(
     val built: List<String> = emptyList(),
     val sold: List<String> = emptyList(),
     val freelancersHired: Int = 0,
-)
+    /** Cards tucked under the startup; its size is the number of completed roadmap stages. */
+    val tucked: List<String> = emptyList(),
+    /** Sprint in which the last roadmap stage was completed (0 = none yet). */
+    val lastStageSprint: Int = 0,
+) {
+    val stagesDone: Int get() = tucked.size
+}
 
 @Serializable
 data class GameState(
@@ -240,6 +286,9 @@ data class Option(
     val card: Card,
     val payment: Payment? = null,
     val gain: Int = 0,
+    /** For `stage:` options: the roadmap stage this completes (1-based) and its definition. */
+    val stageNumber: Int = 0,
+    val stage: RoadmapStage? = null,
 )
 
 @Serializable
@@ -251,6 +300,8 @@ data class Score(
     val bonuses: Int,
     val money: Int,
     val coins: Int,
+    /** ⭐ printed on completed roadmap stages. */
+    val roadmap: Int = 0,
 ) {
-    val total: Int get() = features + libraries + business + bonuses + money
+    val total: Int get() = features + libraries + business + bonuses + money + roadmap
 }

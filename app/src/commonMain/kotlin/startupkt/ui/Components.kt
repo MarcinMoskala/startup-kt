@@ -1,8 +1,12 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package startupkt.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +23,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import startupkt.engine.*
@@ -189,6 +194,10 @@ fun CardView(
     mark: Mark = Mark.NONE,
     dimmed: Boolean = false,
     onClick: (() -> Unit)? = null,
+    /** Phone: long-press to inspect the card. */
+    onLongClick: (() -> Unit)? = null,
+    /** Inspection mode (preview popup): nothing is truncated, flavor text is larger. */
+    expanded: Boolean = false,
 ) {
     val accent = Palette.of(card.type)
     val shape = RoundedCornerShape(10.dp)
@@ -204,7 +213,13 @@ fun CardView(
             .clip(shape)
             .background(Palette.surface)
             .border(if (mark == Mark.NONE) 1.dp else 2.5.dp, borderColor, shape)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick).pointerHoverIcon(PointerIcon.Hand) else Modifier),
+            .then(
+                when {
+                    onLongClick != null -> Modifier.combinedClickable(onClick = { onClick?.invoke() }, onLongClick = onLongClick).pointerHoverIcon(PointerIcon.Hand)
+                    onClick != null -> Modifier.clickable(onClick = onClick).pointerHoverIcon(PointerIcon.Hand)
+                    else -> Modifier
+                }
+            ),
     ) {
         // Header
         Row(
@@ -227,10 +242,7 @@ fun CardView(
             }
         }
         // Art band
-        Box(
-            Modifier.fillMaxWidth().height(if (compact) 44.dp else 60.dp).background(accent.copy(alpha = 0.22f)),
-            contentAlignment = Alignment.Center,
-        ) { Icon(glyphOf(card.type), if (compact) 26.dp else 34.dp, tint = accent.copy(alpha = 0.75f)) }
+        CardArt(card, if (expanded) 110.dp else if (compact) 58.dp else 76.dp)
         // Body
         Column(
             Modifier.weight(1f).fillMaxWidth().padding(horizontal = 9.dp, vertical = 8.dp),
@@ -252,12 +264,19 @@ fun CardView(
             }
             val unlocks = ruleset.cards.filter { it.freeWith == card.id }
             if (unlocks.isNotEmpty()) {
-                RichText("Makes free: " + unlocks.joinToString(", ") { it.name }, Type.small.copy(fontSize = 11.sp, color = Palette.kotlinLight), maxLines = 3)
+                RichText("Makes free: " + unlocks.joinToString(", ") { it.name }, Type.small.copy(fontSize = 11.sp, color = Palette.kotlinLight), maxLines = if (expanded) Int.MAX_VALUE else 3)
             }
-            Spacer(Modifier.weight(1f))
-            if (card.description.isNotEmpty() && !compact) {
-                BasicText(card.description, style = Type.flavor, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
+            // Flavor text takes all the space that is left (ellipsis only if it really does not fit).
+            if (card.description.isNotEmpty()) {
+                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.BottomStart) {
+                    BasicText(
+                        card.description,
+                        style = if (expanded) Type.flavor.copy(fontSize = 12.sp, lineHeight = 17.sp, color = Palette.muted)
+                        else Type.flavor.copy(lineHeight = 13.sp),
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            } else Spacer(Modifier.weight(1f))
         }
         if (status != null) {
             Box(Modifier.fillMaxWidth().background(Palette.bg.copy(alpha = 0.6f)).padding(horizontal = 9.dp, vertical = 6.dp)) {
@@ -269,24 +288,24 @@ fun CardView(
 
 /** A built card in a tableau: a coloured strip with the name and ⭐. */
 @Composable
-fun Strip(card: Card, modifier: Modifier = Modifier, highlight: Boolean = false) {
+fun Strip(card: Card, modifier: Modifier = Modifier, highlight: Boolean = false, height: Dp = 26.dp, font: TextUnit = 12.sp) {
     val c = Palette.of(card.type)
     Row(
-        modifier.height(26.dp).clip(RoundedCornerShape(5.dp)).background(c)
+        modifier.height(height).clip(RoundedCornerShape(5.dp)).background(c)
             .then(if (highlight) Modifier.border(1.5.dp, Color.White, RoundedCornerShape(5.dp)) else Modifier)
             .padding(horizontal = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Icon(glyphOf(card.type), 12.dp, tint = Color.White.copy(alpha = 0.9f))
+        Icon(glyphOf(card.type), (font.value).dp, tint = Color.White.copy(alpha = 0.9f))
         BasicText(
             card.name, Modifier.weight(1f),
-            style = TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+            style = TextStyle(color = Color.White, fontSize = font, fontWeight = FontWeight.SemiBold),
             maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
         if (card.points > 0) {
-            Icon(Glyph.STAR, 11.dp)
-            BasicText("${card.points}", style = TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold))
+            Icon(Glyph.STAR, (font.value - 1).dp)
+            BasicText("${card.points}", style = TextStyle(color = Color.White, fontSize = font, fontWeight = FontWeight.Bold))
         }
     }
 }
@@ -327,6 +346,7 @@ fun Avatar(name: String, seat: Int, size: Dp = 30.dp) {
 fun PlayerBadge(
     name: String, seat: Int, startup: String, stars: Int, coins: Int, production: List<List<Res>>,
     status: String?, statusColor: Color, isYou: Boolean, lastAction: String?, modifier: Modifier = Modifier, compact: Boolean = false,
+    startupId: String? = null,
 ) {
     val shape = RoundedCornerShape(10.dp)
     Column(
@@ -336,7 +356,7 @@ fun PlayerBadge(
         verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 6.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Avatar(name, seat, if (compact) 24.dp else 30.dp)
+            if (startupId != null) StartupLogo(startupId, if (compact) 26.dp else 32.dp) else Avatar(name, seat, if (compact) 24.dp else 30.dp)
             Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f)) {
                 BasicText(name, style = Type.h3, maxLines = 1, overflow = TextOverflow.Ellipsis)

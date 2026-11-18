@@ -31,23 +31,25 @@ fun App() {
     val scope = rememberCoroutineScope()
     val controller = remember { GameController(scope) }
     var showRules by remember { mutableStateOf(false) }
+    var showCards by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize().background(Palette.bg)) {
         if (!controller.inGame) {
-            SetupScreen(controller, onRules = { showRules = true })
+            SetupScreen(controller, onRules = { showRules = true }, onCards = { showCards = true })
         } else {
             GameScreen(controller, onRules = { showRules = true })
             val s = controller.state
             if (s != null && s.finished) ResultOverlay(controller, s)
         }
         if (showRules) RulesOverlay(onClose = { showRules = false })
+        if (showCards) CardGallery(controller.engine, onClose = { showCards = false })
     }
 }
 
 // ============================== Setup ==============================
 
 @Composable
-fun SetupScreen(controller: GameController, onRules: () -> Unit) {
+fun SetupScreen(controller: GameController, onRules: () -> Unit, onCards: () -> Unit = {}) {
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(
             Modifier.widthIn(max = 560.dp).fillMaxWidth().padding(horizontal = 16.dp, vertical = 32.dp),
@@ -72,10 +74,24 @@ fun SetupScreen(controller: GameController, onRules: () -> Unit) {
                 BasicText(controller.difficulty.blurb, style = Type.muted)
             }
             Btn("Start game", onClick = { controller.newGame() }, modifier = Modifier.fillMaxWidth(), color = Palette.orange)
-            Btn("How to play", onClick = onRules, modifier = Modifier.fillMaxWidth(), outlined = true, color = Palette.muted)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Btn("How to play", onClick = onRules, modifier = Modifier.weight(1f), outlined = true, color = Palette.muted)
+                Btn("Browse cards", onClick = onCards, modifier = Modifier.weight(1f), outlined = true, color = Palette.muted)
+            }
+            Panel(label = "STARTUPS") {
+                controller.engine.ruleset.startups.forEach { st ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        StartupLogo(st.id, 34.dp)
+                        Column(Modifier.weight(1f)) {
+                            BasicText(st.name, style = Type.h3)
+                            RichText(st.ability.removePrefix("Product-Market Fit: "), Type.small.copy(color = Palette.muted), maxLines = 2)
+                        }
+                    }
+                }
+            }
             Panel(label = "IN ONE MINUTE") {
                 RichText("• Pick one card each turn, then pass your hand to the next player.", Type.small)
-                RichText("• Build it (pay its cost) or sell it for 3💰.", Type.small)
+                RichText("• Build it (pay its cost), sell it for 3💰, or tuck it under your startup to reach the next Roadmap stage.", Type.small)
                 RichText("• 👥 Team cards produce 📱 🖥 🤖 forever. Missing 📱/🖥? A freelancer costs 2💰.", Type.small)
                 RichText("• 🤖 does 📱/🖥 work for 1💰 in tokens. 📚 Libraries make two features free.", Type.small)
                 RichText("• Most ⭐ after 3 Sprints wins. Tip: build your team in Sprint I.", Type.small)
@@ -109,8 +125,8 @@ data class BuildInfo(
 fun buildInfo(engine: Engine, state: GameState, seat: Int, card: Card): BuildInfo {
     val p = state.player(seat)
     val options = engine.options(state, seat)
-    val build = options.firstOrNull { it.card.id == card.id && it.payment != null }
-    val sell = options.firstOrNull { it.card.id == card.id && it.payment == null }?.gain ?: engine.sellValue(p)
+    val build = options.firstOrNull { it.card.id == card.id && it.action.startsWith("build:") }
+    val sell = options.firstOrNull { it.card.id == card.id && it.action.startsWith("sell:") }?.gain ?: engine.sellValue(p)
     if (build != null) {
         val pay = build.payment!!
         if (pay.free) {
@@ -190,7 +206,7 @@ fun GameScreen(controller: GameController, onRules: () -> Unit) {
             } else selected = if (selected == id) null else id
         }
     }
-    val actionBar: @Composable (Boolean) -> Unit = { stacked ->
+    val actionBar: @Composable (BarLayout) -> Unit = { stacked ->
         ActionBar(
             controller, state, selectedCard, pendingMain, discard, duel, waiting, stacked,
             onChoose = ::choose,
@@ -208,47 +224,11 @@ fun GameScreen(controller: GameController, onRules: () -> Unit) {
         if (mobile) {
             MobileTable(controller, state, hand, selected, pendingMain, discard, waiting, duel, onRules, onCardClick, actionBar)
         } else {
-            DesktopTable(controller, state, hand, selected, pendingMain, discard, waiting, duel, onRules, onCardClick, actionBar, maxWidth)
+            CardTable(
+                controller, state, hand, selected, pendingMain, discard, waiting, duel, onRules, onCardClick, actionBar, maxWidth, maxHeight,
+                onDropAction = { id, action -> selected = id; choose(action) },
+            )
         }
-    }
-}
-
-@Composable
-private fun DesktopTable(
-    controller: GameController, state: GameState, hand: List<String>,
-    selected: String?, pendingMain: Action?, discard: String?, waiting: Boolean, duel: Boolean,
-    onRules: () -> Unit, onCardClick: (String) -> Unit, actionBar: @Composable (Boolean) -> Unit, width: Dp,
-) {
-    val pad = if (width >= 1100.dp) 28.dp else 18.dp
-    val inner = width - pad * 2
-    val wide = width >= 1100.dp
-    Column(Modifier.fillMaxSize()) {
-        Column(
-            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = pad, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            TopBar(controller, state, onRules, compact = false)
-            PlayerStrip(controller, state)
-            OpponentBoards(controller, state, inner)
-            if (wide) {
-                val companyW = 380.dp
-                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                    CompanyPanel(controller, state, Modifier.width(companyW))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        HandHeader(controller, state, waiting, pendingMain, duel)
-                        HandGrid(controller, state, hand, inner - companyW - 18.dp, selected, pendingMain, discard, waiting, onCardClick)
-                    }
-                }
-            } else {
-                HandHeader(controller, state, waiting, pendingMain, duel)
-                HandGrid(controller, state, hand, inner, selected, pendingMain, discard, waiting, onCardClick)
-                CompanyPanel(controller, state, Modifier.fillMaxWidth())
-            }
-        }
-        Box(
-            Modifier.fillMaxWidth().background(Palette.surface).border(1.dp, Palette.border)
-                .padding(horizontal = pad, vertical = 12.dp),
-        ) { actionBar(false) }
     }
 }
 
@@ -256,10 +236,11 @@ private fun DesktopTable(
 private fun MobileTable(
     controller: GameController, state: GameState, hand: List<String>,
     selected: String?, pendingMain: Action?, discard: String?, waiting: Boolean, duel: Boolean,
-    onRules: () -> Unit, onCardClick: (String) -> Unit, actionBar: @Composable (Boolean) -> Unit,
+    onRules: () -> Unit, onCardClick: (String) -> Unit, actionBar: @Composable (BarLayout) -> Unit,
 ) {
     val engine = controller.engine
     var tab by remember { mutableStateOf(controller.humanSeat) }
+    var inspect by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = 12.dp),
@@ -281,11 +262,12 @@ private fun MobileTable(
                 )
             }
             Box(Modifier.padding(horizontal = 14.dp)) { HandHeader(controller, state, waiting, pendingMain, duel, compact = true) }
+            BasicText("// long-press a card to read it", Modifier.padding(horizontal = 14.dp), style = Type.label.copy(fontSize = 10.sp, color = Palette.faint))
             Row(
                 Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 14.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                HandCards(controller, state, hand, 150.dp, 236.dp, selected, pendingMain, discard, waiting, onCardClick)
+                HandCards(controller, state, hand, 150.dp, 236.dp, selected, pendingMain, discard, waiting, onCardClick, onInspect = { inspect = it })
             }
             if (hand.isEmpty()) BasicText("// dealing the next Sprint...", Modifier.padding(horizontal = 14.dp), style = Type.label)
             // Company tabs
@@ -315,8 +297,9 @@ private fun MobileTable(
             Modifier.fillMaxWidth().background(Palette.surface)
                 .border(1.dp, Palette.border)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
-        ) { actionBar(true) }
+        ) { actionBar(BarLayout.STACKED) }
     }
+    inspect?.let { CardInspectOverlay(engine.ruleset.card(it), engine.ruleset) { inspect = null } }
 }
 
 // ============================== Pieces ==============================
@@ -392,26 +375,9 @@ private fun PlayerBadges(controller: GameController, state: GameState, compact: 
                 stars = engine.score(state, seat).total, coins = p.coins, production = engine.production(p),
                 status = status, statusColor = color, isYou = seat == me,
                 lastAction = lastActionOf(controller, p.name),
-                modifier = modifierFor(seat), compact = compact,
+                modifier = modifierFor(seat), compact = compact, startupId = p.startup,
             )
         }
-    }
-}
-
-@Composable
-fun PlayerStrip(controller: GameController, state: GameState) {
-    PlayerBadges(controller, state, compact = false) { Modifier.weight(1f) }
-}
-
-@Composable
-fun OpponentBoards(controller: GameController, state: GameState, width: Dp) {
-    val me = controller.humanSeat
-    val opponents = tableOrder(state, me, passesReversed(controller.engine, state)).filter { it != me }
-    val gap = 14.dp
-    val perRow = maxOf(1, minOf(opponents.size, ((width + gap) / (300.dp + gap)).toInt()))
-    val w = (width - gap * (perRow - 1)) / perRow
-    FlowRowCompat(spacing = gap) {
-        opponents.forEach { OpponentBoard(controller, state, it, Modifier.width(w)) }
     }
 }
 
@@ -424,14 +390,78 @@ fun OpponentBoard(controller: GameController, state: GameState, seat: Int, modif
     val newest = if (last?.startsWith("built") == true) p.built.lastOrNull() else null
     Panel(modifier, label = "${p.name.uppercase()} · ${startup.name}") {
         if (showAbility) {
-            RichText(startup.ability, Type.muted)
+            Roadmap(engine, p)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Amount(engine.score(state, seat).total, Glyph.STAR, 14.sp, iconFirst = true)
                 Amount(p.coins, Glyph.COIN, 14.sp, iconFirst = true)
                 ProductionRow(engine.production(p), 15.dp)
             }
         }
+        if (!showAbility) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StartupLogo(p.startup, 22.dp)
+            if (startup.stages.isNotEmpty()) RoadmapDots(engine, p)
+        }
         Tableau(engine, p.built, newest)
+    }
+}
+
+/** Label and availability of the roadmap button, or null when the startup has no stage left. */
+fun stageButton(engine: Engine, state: GameState, seat: Int, short: Boolean = false): Pair<String, Boolean>? {
+    val p = state.player(seat)
+    val stage = engine.nextStage(p) ?: return null
+    val pay = engine.stagePayment(p)
+    val n = roman(p.stagesDone + 1)
+    val word = if (short) "Stage" else "Roadmap"
+    return if (pay == null) (if (short) "Stage $n ✕" else "Roadmap $n · can't pay") to false
+    else "$word $n " + (if (short) "" else "· ") + (if (pay.coins == 0) "free" else "${pay.coins}💰") to true
+}
+
+/** The startup's three roadmap stages with cost, effect and progress. */
+@Composable
+fun Roadmap(engine: Engine, p: PlayerState) {
+    val stages = engine.ruleset.startup(p.startup).stages
+    if (stages.isEmpty()) { RichText(engine.ruleset.startup(p.startup).ability, Type.muted); return }
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        BasicText("// roadmap: tuck a card to reach the next stage", style = Type.label.copy(fontSize = 10.sp))
+        stages.forEachIndexed { i, st ->
+            val done = i < p.stagesDone
+            val next = i == p.stagesDone
+            val shape = RoundedCornerShape(7.dp)
+            Row(
+                Modifier.fillMaxWidth().clip(shape)
+                    .background(if (done) Palette.gold.copy(alpha = 0.16f) else Palette.surface2)
+                    .border(1.dp, if (next) Palette.gold else Palette.border, shape)
+                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                BasicText(
+                    if (done) "✓" else roman(i + 1),
+                    Modifier.width(26.dp),
+                    style = Type.mono.copy(color = if (done || next) Palette.gold else Palette.faint, fontWeight = FontWeight.Bold),
+                )
+                Column(Modifier.weight(1f)) {
+                    BasicText(st.name, style = Type.small.copy(fontWeight = FontWeight.SemiBold, color = if (done) Palette.gold else Palette.text))
+                    RichText(st.text, Type.small.copy(color = Palette.muted, fontSize = 11.sp), maxLines = 2)
+                }
+                RichText(st.cost.joinToString("") { it.icon } + if (st.costCoins > 0) " ${st.costCoins}💰" else "", Type.small)
+            }
+        }
+    }
+}
+
+/** Compact roadmap progress for opponent boards: "Roadmap ●●○ · next: Exit". */
+@Composable
+fun RoadmapDots(engine: Engine, p: PlayerState) {
+    val stages = engine.ruleset.startup(p.startup).stages
+    val next = stages.getOrNull(p.stagesDone)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        BasicText("roadmap", style = Type.label.copy(fontSize = 10.sp))
+        BasicText(
+            stages.indices.joinToString("") { if (it < p.stagesDone) "●" else "○" },
+            style = Type.mono.copy(color = Palette.gold, fontSize = 12.sp),
+        )
+        RichText(next?.let { "next: ${it.name} · ${it.text}" } ?: "all done", Type.small.copy(color = Palette.muted, fontSize = 11.sp), maxLines = 1)
     }
 }
 
@@ -444,8 +474,13 @@ fun CompanyPanel(controller: GameController, state: GameState, modifier: Modifie
     val last = lastActionOf(controller, me.name)
     val newest = if (last?.startsWith("built") == true) me.built.lastOrNull() else null
     Panel(modifier, label = "YOUR COMPANY", accent = Palette.orange, padding = 16.dp) {
-        BasicText(startup.name, style = Type.h2.copy(fontSize = 21.sp))
-        RichText(startup.ability, Type.small.copy(color = Palette.muted, lineHeight = 17.sp))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            StartupLogo(me.startup, 52.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                BasicText(startup.name, style = Type.h2.copy(fontSize = 20.sp))
+                BasicText(startup.description, style = Type.flavor.copy(fontSize = 11.sp, color = Palette.muted), maxLines = 3)
+            }
+        }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             BasicText("Produces", style = Type.small.copy(color = Palette.muted, fontWeight = FontWeight.SemiBold))
             ProductionRow(engine.production(me), 17.dp)
@@ -454,6 +489,7 @@ fun CompanyPanel(controller: GameController, state: GameState, modifier: Modifie
             "freelancer ${engine.freelancerPrice(me)}💰 · 🤖 token ${engine.ruleset.rules.agentTokenCost}💰 · 1⭐ per ${engine.coinsPerPoint(me)}💰",
             Type.label.copy(fontSize = 11.sp),
         )
+        Roadmap(engine, me)
         Spacer(Modifier.height(2.dp))
         Tableau(engine, me.built, newest, empty = "// build your team first: 👥 cards produce forever")
         Spacer(Modifier.height(2.dp))
@@ -464,7 +500,7 @@ fun CompanyPanel(controller: GameController, state: GameState, modifier: Modifie
 @Composable
 fun ScoreLine(s: Score) {
     RichText(
-        "${s.total}⭐ = features ${s.features} + libs ${s.libraries} + business ${s.business} + bonus ${s.bonuses} + 💰 ${s.money}",
+        "${s.total}⭐ = features ${s.features} + libs ${s.libraries} + business ${s.business} + roadmap ${s.roadmap} + bonus ${s.bonuses} + 💰 ${s.money}",
         Type.label.copy(fontSize = 11.sp, color = Palette.muted),
     )
 }
@@ -493,23 +529,10 @@ fun HandHeader(controller: GameController, state: GameState, waiting: Boolean, p
 }
 
 @Composable
-fun HandGrid(
-    controller: GameController, state: GameState, hand: List<String>, width: Dp,
-    selected: String?, pendingMain: Action?, discard: String?, waiting: Boolean, onCardClick: (String) -> Unit,
-) {
-    if (hand.isEmpty()) { BasicText("// dealing the next Sprint...", style = Type.label); return }
-    val gap = 12.dp
-    val perRow = maxOf(2, ((width + gap) / (168.dp + gap)).toInt())
-    val cardW = ((width - gap * (perRow - 1)) / perRow).coerceAtMost(200.dp)
-    FlowRowCompat(spacing = gap) {
-        HandCards(controller, state, hand, cardW, maxOf(268.dp, cardW * 1.45f), selected, pendingMain, discard, waiting, onCardClick)
-    }
-}
-
-@Composable
 fun HandCards(
     controller: GameController, state: GameState, hand: List<String>, width: Dp, height: Dp,
     selected: String?, pendingMain: Action?, discard: String?, waiting: Boolean, onCardClick: (String) -> Unit,
+    onInspect: ((String) -> Unit)? = null,
 ) {
     val engine = controller.engine
     val me = state.player(controller.humanSeat)
@@ -530,6 +553,7 @@ fun HandCards(
                 mark = mark,
                 dimmed = !waiting || (pendingMain != null && id == pendingMain.cardId && hand.count { it == id } == 1),
                 onClick = { onCardClick(id) },
+                onLongClick = onInspect?.let { f -> { f(id) } },
             )
         }
     }
@@ -538,10 +562,11 @@ fun HandCards(
 @Composable
 fun ActionBar(
     controller: GameController, state: GameState, card: Card?, pendingMain: Action?, discard: String?,
-    duel: Boolean, waiting: Boolean, stacked: Boolean,
+    duel: Boolean, waiting: Boolean, layout: BarLayout,
     onChoose: (Action) -> Unit, onConfirmDuel: () -> Unit, onCancel: () -> Unit,
 ) {
     val engine = controller.engine
+    val stacked = layout == BarLayout.STACKED
     val shell: @Composable (@Composable () -> Unit) -> Unit = { content ->
         Box(Modifier.fillMaxWidth().heightIn(min = 46.dp), contentAlignment = Alignment.CenterStart) { content() }
     }
@@ -557,10 +582,10 @@ fun ActionBar(
                 )
             }
             pendingMain != null -> {
-                val verb = if (pendingMain is Action.Build) "Build" else "Sell"
+                val verb = when (pendingMain) { is Action.Build -> "Build"; is Action.Sell -> "Sell"; is Action.Stage -> "Tuck for roadmap:" }
                 val mainName = engine.ruleset.card(pendingMain.cardId).name
                 ActionLayout(
-                    stacked,
+                    layout,
                     title = "$verb $mainName",
                     subtitle = "then discard: " + (discard?.let { engine.ruleset.card(it).name } ?: "tap another card"),
                     subtitleColor = if (discard != null) Palette.red else Palette.muted,
@@ -570,34 +595,46 @@ fun ActionBar(
                 }
             }
             card == null -> BasicText(
-                if (duel) "// tap a card, choose Build or Sell, then pick a card to discard"
-                else "// tap a card to build it or sell it",
+                if (duel) "// tap a card, choose Build, Sell or Roadmap, then pick a card to discard"
+                else "// tap a card to build it, sell it or tuck it for your roadmap",
                 Modifier.padding(vertical = 8.dp),
                 style = Type.mono.copy(color = Palette.muted, fontSize = 13.sp),
             )
             else -> {
                 val info = buildInfo(engine, state, controller.humanSeat, card)
-                ActionLayout(stacked, title = card.name, subtitle = info.explain, subtitleColor = info.color) { m ->
-                    Btn(info.buttonLabel, { onChoose(Action.Build(card.id)) }, m(1.4f), enabled = info.option != null, color = Palette.kotlin)
-                    Btn("Sell · +${info.sellGain}💰", { onChoose(Action.Sell(card.id)) }, m(1f), outlined = true, color = Palette.orange)
+                ActionLayout(layout, title = card.name, subtitle = info.explain, subtitleColor = info.color) { m ->
+                    Btn(info.buttonLabel, { onChoose(Action.Build(card.id)) }, m(if (stacked) 1f else 1.4f), enabled = info.option != null, color = Palette.kotlin)
+                    Btn(if (stacked) "Sell +${info.sellGain}💰" else "Sell · +${info.sellGain}💰", { onChoose(Action.Sell(card.id)) }, m(if (stacked) 0.9f else 1f), outlined = true, color = Palette.orange)
+                    stageButton(engine, state, controller.humanSeat, short = stacked)?.let { (label, enabled) ->
+                        Btn(label, { onChoose(Action.Stage(card.id)) }, m(if (stacked) 1f else 1.2f), enabled = enabled, outlined = true, color = Palette.gold)
+                    }
                 }
             }
         }
     }
 }
 
+/** ROW: text left, buttons right (wide bar). STACKED: text above a row of buttons (phone). PANEL: text above full-width buttons (side panel). */
+enum class BarLayout { ROW, STACKED, PANEL }
+
 @Composable
 private fun ActionLayout(
-    stacked: Boolean, title: String, subtitle: String, subtitleColor: Color,
-    buttons: @Composable RowScope.(m: (Float) -> Modifier) -> Unit,
+    layout: BarLayout, title: String, subtitle: String, subtitleColor: Color,
+    buttons: @Composable (m: (Float) -> Modifier) -> Unit,
 ) {
     val text: @Composable (Modifier) -> Unit = { mod ->
         Column(mod) {
-            BasicText(title, style = Type.h2.copy(fontSize = 16.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            RichText(subtitle, Type.small.copy(color = subtitleColor), maxLines = 2)
+            BasicText(title, style = Type.h2.copy(fontSize = 16.sp), maxLines = if (layout == BarLayout.PANEL) 2 else 1, overflow = TextOverflow.Ellipsis)
+            RichText(subtitle, Type.small.copy(color = subtitleColor), maxLines = if (layout == BarLayout.PANEL) 3 else 2)
         }
     }
-    if (stacked) {
+    if (layout == BarLayout.PANEL) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            text(Modifier)
+            Spacer(Modifier.height(4.dp))
+            buttons { Modifier.fillMaxWidth() }
+        }
+    } else if (layout == BarLayout.STACKED) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             text(Modifier)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { buttons { Modifier.weight(it) } }
@@ -638,6 +675,8 @@ fun ResultOverlay(controller: GameController, state: GameState) {
                         .padding(10.dp),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        StartupLogo(p.startup, 26.dp)
+                        Spacer(Modifier.width(8.dp))
                         BasicText("#${ranks[s.seat]}  ${p.name}", style = Type.h3, modifier = Modifier.weight(1f))
                         Amount(s.total, Glyph.STAR, 16.sp)
                     }
@@ -661,6 +700,65 @@ fun Scrim(onDismiss: (() -> Unit)? = null, content: @Composable () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Box(Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}) { content() }
+    }
+}
+
+// ============================== Card gallery ==============================
+
+@Composable
+fun CardGallery(engine: Engine, onClose: () -> Unit) {
+    Scrim(onDismiss = onClose) {
+        Column(
+            Modifier.widthIn(max = 1120.dp).fillMaxWidth().fillMaxHeight(0.94f).padding(12.dp)
+                .clip(RoundedCornerShape(16.dp)).background(Palette.bg).border(1.dp, Palette.border, RoundedCornerShape(16.dp)),
+        ) {
+            Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                BasicText("All cards", style = Type.h2, modifier = Modifier.weight(1f))
+                Btn("Close", onClose, small = true, outlined = true, color = Palette.muted)
+            }
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val inner = maxWidth - 32.dp
+                val gap = 12.dp
+                val perRow = maxOf(2, ((inner + gap) / (170.dp + gap)).toInt())
+                val w = ((inner - gap * (perRow - 1)) / perRow).coerceAtMost(200.dp)
+                Column(
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    BasicText("// startups", style = Type.label)
+                    FlowRowCompat(spacing = gap) {
+                        engine.ruleset.startups.forEach { st ->
+                            Column(
+                                Modifier.width(maxOf(w * 2 + gap, 300.dp).coerceAtMost(inner)).clip(RoundedCornerShape(10.dp)).background(Palette.surface)
+                                    .border(1.dp, Palette.border, RoundedCornerShape(10.dp)),
+                            ) {
+                                Box {
+                                    StartupBanner(st.id, 64.dp, Modifier.fillMaxWidth())
+                                    Column(Modifier.padding(12.dp)) {
+                                        BasicText(st.name, style = Type.h2.copy(fontSize = 16.sp, color = Color.White))
+                                        RichText("makes " + st.produces.joinToString(" ") { u -> u.joinToString("/") { it.icon } } + " · starts with ${st.startCoins ?: engine.ruleset.rules.startCoins}💰", Type.small.copy(color = Color.White.copy(alpha = 0.85f)))
+                                    }
+                                }
+                                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    st.stages.forEachIndexed { i, stage ->
+                                        RichText("${roman(i + 1)} · ${stage.name}: " + stage.cost.joinToString("") { it.icon } + " → " + stage.text, Type.small)
+                                    }
+                                    BasicText(st.description, style = Type.flavor.copy(fontSize = 11.sp))
+                                }
+                            }
+                        }
+                    }
+                    for (sprint in 1..engine.ruleset.rules.sprints) {
+                        BasicText("// sprint ${roman(sprint)} · ${sprintName(sprint)}", style = Type.label)
+                        FlowRowCompat(spacing = gap) {
+                            engine.ruleset.cards.filter { it.sprint == sprint }.forEach { c ->
+                                CardHoverPreview(c, engine.ruleset) { CardView(c, engine.ruleset, w, maxOf(268.dp, w * 1.45f)) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -700,7 +798,7 @@ private val RULES: List<Pair<String, List<String>>> = listOf(
     ),
     "A pick" to listOf(
         "Everyone picks one card from their hand at the same time.",
-        "Build it (pay its cost) or Sell it for 3💰.",
+        "Build it (pay its cost), Sell it for 3💰, or tuck it face down under your startup to reach the next Roadmap stage (pay the stage's cost).",
         "Then hands are passed to the next player. After 4 picks the last card is discarded and a new Sprint is dealt.",
     ),
     "Cards" to listOf(
@@ -711,10 +809,13 @@ private val RULES: List<Pair<String, List<String>>> = listOf(
         "You can't build the same card twice.",
     ),
     "Scoring" to listOf("⭐ from cards and bonuses, plus 1⭐ per 3💰. On a tie, more 💰 wins."),
-    "Startups" to listOf(
-        "Each player starts with a startup: one resource, some 💰 and a small ability printed on it.",
+    "Startups and the Roadmap" to listOf(
+        "Each player starts with a startup: one resource, some 💰 and a 3-stage Roadmap: MVP → Product-Market Fit → Exit.",
+        "Stages are reached in order, one per pick, by tucking any card from your hand. Pay the stage cost like a card (your team, freelancers, 🤖 tokens).",
+        "MVP gives 💰 and 1⭐, Product-Market Fit gives your startup's special ability, Exit gives 4–5⭐.",
+        "Tucking is also a way to keep a strong card away from your neighbour.",
     ),
-    "Two players: the Duel" to listOf("You get 8 cards. Every pick you play one card and discard another face down, then pass."),
+    "Two players: the Duel" to listOf("You get 8 cards. Every pick you play one card (build, sell or roadmap) and discard another face down, then pass."),
     "Tips" to listOf(
         "Sprint I: build your team, the ⭐ come later.",
         "Watch what your neighbour needs: selling a card also keeps it away from them.",

@@ -19,8 +19,8 @@ Gra zapisuje się w `localStorage`, więc odświeżenie strony nie przerywa part
 Boty myślą w przeglądarce (Monte Carlo, kooperacyjnie z UI). W konsoli logują, ile czasu zajęła każda decyzja.
 
 ## Zasady
-Aktualne zasady (v3, po angielsku, do druku) są w [RULES.md](RULES.md). Pełna zawartość kart jest w
-`engine/Cards.kt` oraz w `rulesets/v3.json`. Wyniki testów opisuje [PLAYTEST.md](PLAYTEST.md).
+Aktualne zasady (v4 z roadmapą startupów, po angielsku, do druku) są w [RULES.md](RULES.md). Pełna zawartość kart jest w
+`engine/Cards.kt` oraz w `rulesets/v4.json`. Poprzednia wersja bez roadmapy: `rulesets/v3.json` (`--def rulesets/v3.json`). Wyniki testów opisuje [PLAYTEST.md](PLAYTEST.md).
 
 ## Budowanie
 ```bash
@@ -37,7 +37,7 @@ $B validate --def def.json
 $B simulate --games 2000 --players 4 --bots balanced,engine,greedy,ai-fan [--def def.json]
 $B new --state g.game.json --players 3 --seed 1 --bots 1=balanced,2=engine [--def def.json]
 $B view --state g.game.json --seat 0       # co widzi seat 0 i jakie ma legalne akcje
-$B act  --state g.game.json --seat 0 --action build:ktor   # albo sell:<id>
+$B act  --state g.game.json --seat 0 --action build:ktor   # albo sell:<id>, stage:<id> (roadmapa)
 $B status --state g.game.json
 ```
 Miejsca bez bota są sterowane przez Ciebie (możesz grać kilkoma naraz, hot-seat). Boty ruszają się automatycznie.

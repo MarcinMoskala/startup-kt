@@ -182,6 +182,10 @@ private fun printView(engine: Engine, g: SavedGame, seat: Int, asJson: Boolean) 
     println(if (v.finished) "=== GAME OVER ===" else "=== Sprint ${v.sprint}/${v.sprints}, pick ${v.pick}/${v.picksPerSprint} — seat $seat (${v.startup.name}) ===")
     println("Coins: ${v.coins}💰  Production: ${res(v.production)}  Freelancer: ${v.freelancerPrice}💰  Score so far: ${v.scoreSoFar.total}⭐")
     if (v.startup.ability.isNotEmpty()) println("Startup ability: ${v.startup.ability}")
+    v.startup.stages.forEachIndexed { i, st ->
+        val mark = if (i < v.stagesDone) "[x]" else "[ ]"
+        println("  $mark Stage ${i + 1} ${st.name}: cost ${st.cost.joinToString("") { it.icon }}${if (st.costCoins > 0) " ${st.costCoins}💰" else ""} → ${st.text}")
+    }
     println("Built: " + v.built.joinToString(", ") { it.id }.ifEmpty { "-" })
     v.opponents.forEach { o -> println("  seat ${o.seat} ${o.name} [${o.startup}] ${o.coins}💰 ${o.scoreSoFar}⭐ built: ${o.built.joinToString(",").ifEmpty { "-" }}") }
     if (v.finished) {
@@ -200,6 +204,7 @@ private fun printView(engine: Engine, g: SavedGame, seat: Int, asJson: Boolean) 
         val pay = o.payment
         val note = when {
             pay == null -> "+${o.gain}💰"
+            o.stage != null -> "roadmap stage ${o.stageNumber} ${o.stage?.name}, tuck this card, pay ${pay.coins}💰" + if (o.gain > 0) ", +${o.gain}💰" else ""
             pay.free -> "FREE (chain)" + if (o.gain > 0) ", +${o.gain}💰" else ""
             else -> "pay ${pay.coins}💰" + (if (pay.freelancers.isNotEmpty()) " incl. freelancers ${pay.freelancers.joinToString("") { it.icon }}" else "") +
                 (if (pay.agentTokens > 0) " incl. 🤖 tokens x${pay.agentTokens}" else "") + if (o.gain > 0) ", +${o.gain}💰" else ""
@@ -240,6 +245,8 @@ private fun simulate(opts: Map<String, String>) {
     println("Startup win rate: " + r.startupWinRate.entries.joinToString { "${it.key} ${d(it.value)}" })
     println("Strategy archetypes (share of players → win rate): " + r.archetypes.entries.sortedByDescending { it.value.share }
         .joinToString { "${it.key} ${d(it.value.share * 100)}% → ${d(it.value.winRate)}" })
+    println("Roadmap: avg stages ${d(r.avgStages)}; stages done → share, win rate: " +
+        r.stages.entries.joinToString { "${it.key}: ${d(it.value.share * 100)}% → ${d(it.value.winRate)}" })
     println("Bots:")
     r.botStats.forEach { println("  ${it.bot.padEnd(10)} winRate ${d(it.winRate)}  winLift ${d(it.winLift)}  avgScore ${d(it.avgScore)}  avgRank ${d(it.avgRank)}  (${it.seats} seats)") }
     println("Cards (winLift = builders' win rate / baseline; built, sold):")

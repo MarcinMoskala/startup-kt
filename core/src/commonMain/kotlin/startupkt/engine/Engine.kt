@@ -15,6 +15,7 @@ data class OpponentView(
     val built: List<String>,
     val handSize: Int,
     val scoreSoFar: Int,
+    val stagesDone: Int = 0,
 )
 
 /** Everything one seat is allowed to know. Safe to hand to a bot or an AI agent. */
@@ -34,6 +35,8 @@ data class PlayerView(
     val production: List<List<Res>>,
     val freelancerPrice: Int,
     val built: List<Card>,
+    /** Completed roadmap stages (cards tucked under your startup). */
+    val stagesDone: Int = 0,
     val hand: List<Card>,
     val options: List<Option>,
     val scoreSoFar: Score,
@@ -81,18 +84,48 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
     fun production(p: PlayerState): List<List<Res>> =
         ruleset.startup(p.startup).produces + p.built.flatMap { ruleset.card(it).produces }
 
+    /** Roadmap stages this player has completed. */
+    fun doneStages(p: PlayerState): List<RoadmapStage> = ruleset.startup(p.startup).stages.take(p.stagesDone)
+
+    /** The next roadmap stage, or null when there is none left. */
+    fun nextStage(p: PlayerState): RoadmapStage? = ruleset.startup(p.startup).stages.getOrNull(p.stagesDone)
+
+    private fun specials(p: PlayerState): List<Special> =
+        p.built.mapNotNull { ruleset.card(it).special } + doneStages(p).mapNotNull { it.special }
+
     fun freelancerPrice(p: PlayerState): Int =
-        (p.built.mapNotNull { (ruleset.card(it).special as? Special.FreelancerPrice)?.price } + rules.freelancerPrice).min()
+        (specials(p).mapNotNull { (it as? Special.FreelancerPrice)?.price } + rules.freelancerPrice).min()
 
     fun coinsPerPoint(p: PlayerState): Int =
-        (p.built.mapNotNull { (ruleset.card(it).special as? Special.CoinRate)?.coinsPerPoint } +
+        (specials(p).mapNotNull { (it as? Special.CoinRate)?.coinsPerPoint } +
             listOfNotNull(rules.coinsPerPoint, ruleset.startup(p.startup).coinsPerPoint)).min()
 
-    fun sellValue(p: PlayerState): Int = ruleset.startup(p.startup).sellValue ?: rules.sellValue
+    fun sellValue(p: PlayerState): Int =
+        doneStages(p).mapNotNull { it.sellValue }.lastOrNull() ?: ruleset.startup(p.startup).sellValue ?: rules.sellValue
+
+    fun teamDiscount(p: PlayerState): Int = ruleset.startup(p.startup).teamDiscount + doneStages(p).sumOf { it.teamDiscount }
+
+    fun libraryCoins(p: PlayerState): Int = ruleset.startup(p.startup).libraryCoins + doneStages(p).sumOf { it.libraryCoins }
+
+    fun sprintCoins(p: PlayerState): Int = doneStages(p).sumOf { it.sprintCoins }
 
     /** Coin part of a card's cost for this player (startup discounts applied). */
     fun coinCost(p: PlayerState, card: Card): Int =
-        if (card.type == CardType.TEAM) maxOf(0, card.costCoins - ruleset.startup(p.startup).teamDiscount) else card.costCoins
+        if (card.type == CardType.TEAM) maxOf(0, card.costCoins - teamDiscount(p)) else card.costCoins
+
+    /** Cheapest way to complete the next roadmap stage, or null when impossible (none left, missing 🤖, not enough coins). */
+    fun stagePayment(p: PlayerState, sprint: Int = 0): Payment? {
+        val stage = nextStage(p) ?: return null
+        if (rules.oneStagePerSprint && sprint > 0 && p.lastStageSprint >= sprint) return null
+        val plan = cheapestPlan(production(p), stage.cost, freelancerPrice(p)) ?: return null
+        val coins = stage.costCoins + plan.coins
+        if (coins > p.coins) return null
+        return Payment(free = false, coins = coins, freelancers = plan.freelancers, agentTokens = plan.agentTokens)
+    }
+
+    /** Coins gained immediately when completing [stage]. */
+    fun stageCoins(p: PlayerState, stage: RoadmapStage): Int =
+        stage.coins + ((stage.special as? Special.CoinsPer)?.let { s -> p.built.count { ruleset.card(it).type == s.type } * s.coins } ?: 0)
 
     /** Cheapest way to build [card], or null when impossible (duplicate, missing 🤖, or not enough coins). */
     fun payment(p: PlayerState, card: Card): Payment? {
@@ -134,6 +167,7 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
                 used[u] = false
             }
             if (r != Res.AGENT) rec(i + 1, coins + freelancer, bought + r, subs)
+            else if (rules.agentFreelancerPrice > 0) rec(i + 1, coins + rules.agentFreelancerPrice, bought + r, subs)
         }
         rec(0, 0, emptyList(), 0)
         return best
@@ -166,17 +200,21 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
     /** Coins gained immediately when building. */
     fun immediateCoins(p: PlayerState, card: Card): Int {
         val per = (card.special as? Special.CoinsPer)?.let { s -> p.built.count { ruleset.card(it).type == s.type } * s.coins } ?: 0
-        val lib = if (card.type == CardType.LIBRARY) ruleset.startup(p.startup).libraryCoins else 0
+        val lib = if (card.type == CardType.LIBRARY) libraryCoins(p) else 0
         return card.coins + per + lib
     }
 
     fun options(state: GameState, seat: Int): List<Option> {
         val p = state.player(seat)
         if (state.finished || seat in state.pending) return emptyList()
+        val stage = nextStage(p)
+        val stagePay = stagePayment(p, state.sprint)
         return p.hand.distinct().flatMap { id ->
             val card = ruleset.card(id)
             val build = payment(p, card)?.let { Option(Action.Build(id).encode(), card, it, immediateCoins(p, card)) }
-            listOfNotNull(build, Option(Action.Sell(id).encode(), card, null, sellValue(p)))
+            val roadmap = if (stage != null && stagePay != null)
+                Option(Action.Stage(id).encode(), card, stagePay, stageCoins(p, stage), p.stagesDone + 1, stage) else null
+            listOfNotNull(build, Option(Action.Sell(id).encode(), card, null, sellValue(p)), roadmap)
         }
     }
 
@@ -194,6 +232,11 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
             val card = ruleset.card(action.cardId)
             if (card.id in p.built) throw IllegalActionException("Seat $seat already has '${card.id}' built")
             payment(p, card) ?: throw IllegalActionException("Seat $seat cannot afford '${card.id}'")
+        }
+        if (action is Action.Stage) {
+            if (nextStage(p) == null) throw IllegalActionException("Seat $seat has no roadmap stage left")
+            if (rules.oneStagePerSprint && p.lastStageSprint >= state.sprint) throw IllegalActionException("Seat $seat already reached a roadmap stage this Sprint")
+            stagePayment(p) ?: throw IllegalActionException("Seat $seat cannot afford roadmap stage ${p.stagesDone + 1}")
         }
         if (rules.isDuel(state.players.size)) {
             val d = action.discard ?: throw IllegalActionException("Duel: also discard one card, e.g. '${action.encode()},discard:<cardId>'")
@@ -239,6 +282,20 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
                     log += "$header ${p.name} sold a card, +${sellValue(p)}💰"
                     p.copy(coins = p.coins + sellValue(p), hand = hand, sold = p.sold + card.id)
                 }
+                is Action.Stage -> {
+                    val stage = nextStage(p)!!
+                    val pay = stagePayment(p)!!
+                    val gained = stageCoins(p, stage)
+                    log += "$header ${p.name} reached ${stage.name} (roadmap ${p.stagesDone + 1}/${ruleset.startup(p.startup).stages.size})" +
+                        (if (pay.coins > 0) " paying ${pay.coins}💰" else "") + if (gained > 0) ", +$gained💰" else ""
+                    p.copy(
+                        coins = p.coins - pay.coins + gained,
+                        hand = hand,
+                        tucked = p.tucked + card.id,
+                        lastStageSprint = state.sprint,
+                        freelancersHired = p.freelancersHired + pay.freelancers.size,
+                    )
+                }
             }
         }
         var next = state.copy(players = afterActions, pending = emptyMap(), discard = discard, log = state.log + log)
@@ -261,7 +318,7 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
         val leftovers = state.players.flatMap { it.hand }
         var cleared = state.copy(
             players = state.players.map { p ->
-                val bonus = if (p.hand.isNotEmpty()) ruleset.startup(p.startup).leftoverCoins else 0
+                val bonus = (if (p.hand.isNotEmpty()) ruleset.startup(p.startup).leftoverCoins else 0) + sprintCoins(p)
                 p.copy(hand = emptyList(), coins = p.coins + bonus)
             },
             discard = state.discard + leftovers,
@@ -292,8 +349,9 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
         val p = state.player(seat)
         val cards = p.built.map { ruleset.card(it) }
         fun sumOf(type: CardType) = cards.filter { it.type == type }.sumOf { it.points }
-        val bonuses = cards.sumOf { c ->
-            (c.special as? Special.PointsPer)?.let { s -> cards.count { it.type == s.type } * s.points } ?: 0
+        val stages = doneStages(p)
+        val bonuses = (cards.map { it.special } + stages.map { it.special }).sumOf { sp ->
+            (sp as? Special.PointsPer)?.let { s -> cards.count { it.type == s.type } * s.points } ?: 0
         }
         return Score(
             seat = seat,
@@ -303,6 +361,7 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
             bonuses = bonuses,
             money = p.coins / coinsPerPoint(p),
             coins = p.coins,
+            roadmap = stages.sumOf { it.points },
         )
     }
 
@@ -353,11 +412,12 @@ class Engine(val ruleset: Ruleset = DefaultRuleset.ruleset) {
             production = production(p),
             freelancerPrice = freelancerPrice(p),
             built = p.built.map { ruleset.card(it) },
+            stagesDone = p.stagesDone,
             hand = p.hand.map { ruleset.card(it) },
             options = options(state, seat),
             scoreSoFar = score(state, seat),
             opponents = state.players.filter { it.seat != seat }.map {
-                OpponentView(it.seat, it.name, it.startup, it.coins, it.built, it.hand.size, score(state, it.seat).total)
+                OpponentView(it.seat, it.name, it.startup, it.coins, it.built, it.hand.size, score(state, it.seat).total, it.stagesDone)
             },
             recentLog = state.log.takeLast(logLines),
         )

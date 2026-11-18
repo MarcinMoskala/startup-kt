@@ -80,13 +80,42 @@ class EngineTest {
     }
 
     @Test
-    fun startupAbilities() {
-        val companion = PlayerState(0, "x", "companion", coins = 5, hand = emptyList())
-        assertEquals(1, engine.payment(companion, engine.ruleset.card("junie"))!!.coins)
-        val sealed = PlayerState(0, "x", "sealed-deals", coins = 0, hand = emptyList())
-        assertEquals(4, engine.sellValue(sealed))
-        val lazy = PlayerState(0, "x", "by-lazy-studio", coins = 0, hand = emptyList())
-        assertEquals(2, engine.immediateCoins(lazy, engine.ruleset.card("ktor")))
+    fun roadmapStagesInOrder() {
+        val sealed = PlayerState(0, "x", "sealed-deals", coins = 5, hand = emptyList())
+        assertEquals(3, engine.sellValue(sealed))
+        // MVP needs 🖥🖥: the startup makes one 🖥, the other comes from a freelancer.
+        assertEquals(2, engine.stagePayment(sealed)!!.coins)
+        val pmf = sealed.copy(tucked = listOf("a"))
+        assertEquals("Product-Market Fit", engine.nextStage(pmf)!!.name)
+        assertEquals(5, engine.sellValue(sealed.copy(tucked = listOf("a", "b"))))
+        val done = sealed.copy(tucked = listOf("a", "b", "c"))
+        assertEquals(null, engine.nextStage(done))
+        assertEquals(null, engine.stagePayment(done))
+    }
+
+    @Test
+    fun stageActionTucksCardAndScores() {
+        var s = engine.newGame(3, 11)
+        s = s.copy(players = s.players.map { it.copy(coins = 20) })
+        val card = s.player(0).hand.first()
+        assertTrue(engine.options(s, 0).any { it.action == "stage:$card" })
+        s = engine.submit(s, 0, Action.Stage(card))
+        repeat(2) { seat -> s = engine.submit(s, seat + 1, Action.Sell(s.player(seat + 1).hand.first())) }
+        assertEquals(listOf(card), s.player(0).tucked)
+        assertEquals(1, engine.score(s, 0).roadmap)
+        assertEquals(Action.Stage("ktor"), Action.parse("stage:ktor"))
+    }
+
+    @Test
+    fun duelStageWithDiscard() {
+        var s = engine.newGame(2, 5)
+        s = s.copy(players = s.players.map { it.copy(coins = 20) })
+        val h0 = s.player(0).hand
+        val h1 = s.player(1).hand
+        s = engine.submit(s, 0, Action.parse("stage:${h0[0]},discard:${h0[1]}"))
+        s = engine.submit(s, 1, Action.Sell(h1[0], discard = h1[1]))
+        assertEquals(listOf(h0[0]), s.player(0).tucked)
+        assertEquals(6, s.player(1).hand.size)
     }
 
     @Test
