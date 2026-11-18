@@ -1,0 +1,1479 @@
+{
+    "rules": {
+        "sprints": 3,
+        "handSize": 5,
+        "picksPerSprint": 4,
+        "startCoins": 3,
+        "sellValue": 3,
+        "freelancerPrice": 2,
+        "coinsPerPoint": 3,
+        "minPlayers": 2,
+        "maxPlayers": 5,
+        "baseDeckPlayers": 3,
+        "catchUpCoins": 0,
+        "alternatePassing": false,
+        "agentTokenCost": 1,
+        "duel": true,
+        "duelHandSize": 8,
+        "duelDeckPlayers": 4
+    },
+    "cards": [
+        {
+            "id": "junior-compose-dev",
+            "name": "Junior Compose Dev",
+            "type": "TEAM",
+            "sprint": 1,
+            "copies": [
+                3,
+                4
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "FRONTEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Knows Modifier.padding() by heart; still learning why everything recomposes."
+        },
+        {
+            "id": "junior-backend-dev",
+            "name": "Junior Backend Dev",
+            "type": "TEAM",
+            "sprint": 1,
+            "copies": [
+                3,
+                4
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "BACKEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Writes !! \"just for now\" and ships the endpoint anyway."
+        },
+        {
+            "id": "mid-fullstack-dev",
+            "name": "Mid Full-stack Dev",
+            "type": "TEAM",
+            "sprint": 1,
+            "copies": [
+                3,
+                5
+            ],
+            "costCoins": 2,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "FRONTEND",
+                    "BACKEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Happy on either side of the API, as long as nobody asks about Gradle."
+        },
+        {
+            "id": "junie",
+            "name": "Junie",
+            "type": "TEAM",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 2,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "AGENT"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "JetBrains' coding agent: reads the whole project before touching a line, which is more than most of us do."
+        },
+        {
+            "id": "claude-code",
+            "name": "Claude Code",
+            "type": "TEAM",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 2,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "AGENT"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Lives in your terminal, writes the tests you skipped, and asks before it runs rm -rf."
+        },
+        {
+            "id": "ui-designer",
+            "name": "Product Designer",
+            "type": "TEAM",
+            "sprint": 1,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "FRONTEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Hands you a Figma file with 47 shades of grey and one of them is the brand colour."
+        },
+        {
+            "id": "compose-multiplatform",
+            "name": "Compose Multiplatform",
+            "type": "LIBRARY",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "One @Composable UI for Android, iOS, desktop and web."
+        },
+        {
+            "id": "ktor",
+            "name": "Ktor",
+            "type": "LIBRARY",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "embeddedServer(Netty) { routing { } }: a whole backend in one expression."
+        },
+        {
+            "id": "kotlinx-coroutines",
+            "name": "kotlinx.coroutines",
+            "type": "LIBRARY",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "Launch 100,000 coroutines and your laptop won't notice; Flow makes them talk."
+        },
+        {
+            "id": "kotlinx-serialization",
+            "name": "kotlinx.serialization",
+            "type": "LIBRARY",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "@Serializable on a data class, and JSON stops being a source of bugs."
+        },
+        {
+            "id": "exposed",
+            "name": "Exposed",
+            "type": "LIBRARY",
+            "sprint": 1,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "transaction { Users.selectAll() }: SQL with type-safe Kotlin."
+        },
+        {
+            "id": "koin",
+            "name": "Koin",
+            "type": "LIBRARY",
+            "sprint": 1,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "single { Repository(get()) }: dependency injection without annotation processing."
+        },
+        {
+            "id": "login-screen",
+            "name": "Login Screen",
+            "type": "FEATURE",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 3,
+            "coins": 0,
+            "special": null,
+            "description": "Two text fields, one button and three weeks of OAuth edge cases."
+        },
+        {
+            "id": "dark-mode",
+            "name": "Dark Mode",
+            "type": "FEATURE",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "darkColorScheme() and you're done, until design comes back with notes."
+        },
+        {
+            "id": "profile-screen",
+            "name": "Profile Screen",
+            "type": "FEATURE",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 3,
+            "coins": 0,
+            "special": null,
+            "description": "Avatar, bio, an Edit button and a surprising number of TextField states."
+        },
+        {
+            "id": "health-check",
+            "name": "Health-check Endpoint",
+            "type": "FEATURE",
+            "sprint": 1,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "get(\"/health\") { call.respondText(\"OK\") }: the most reliable code you will ever ship."
+        },
+        {
+            "id": "settings-screen",
+            "name": "Settings Screen",
+            "type": "FEATURE",
+            "sprint": 1,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 3,
+            "coins": 0,
+            "special": null,
+            "description": "Every toggle is a product decision someone avoided making."
+        },
+        {
+            "id": "seed-round",
+            "name": "Seed Round",
+            "type": "BUSINESS",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 5,
+            "special": null,
+            "description": "Ten slides, one TAM chart and the word Kotlin on every one of them."
+        },
+        {
+            "id": "outsourcing-partner",
+            "name": "Outsourcing Partner",
+            "type": "BUSINESS",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 0,
+            "special": {
+                "kind": "freelancerPrice",
+                "price": 1
+            },
+            "description": "A software house on speed dial: the same pixels and endpoints at half the invoice."
+        },
+        {
+            "id": "hackathon",
+            "name": "Hackathon",
+            "type": "BUSINESS",
+            "sprint": 1,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 1,
+            "coins": 3,
+            "special": null,
+            "description": "48 hours, a pizza budget and a prize cheque; the prototype quietly becomes the product."
+        },
+        {
+            "id": "angel-investor",
+            "name": "Angel Investor",
+            "type": "BUSINESS",
+            "sprint": 1,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 4,
+            "special": null,
+            "description": "Believes in you, in Kotlin, and in 10% of the company."
+        },
+        {
+            "id": "eu-grant",
+            "name": "EU Innovation Grant",
+            "type": "BUSINESS",
+            "sprint": 1,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 4,
+            "special": null,
+            "description": "Free money, after a 40-page form about your 'digital transformation impact'."
+        },
+        {
+            "id": "senior-compose-dev",
+            "name": "Senior Compose Dev",
+            "type": "TEAM",
+            "sprint": 2,
+            "copies": [
+                3,
+                4
+            ],
+            "costCoins": 1,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "FRONTEND"
+                ],
+                [
+                    "FRONTEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Has opinions about remember vs rememberSaveable, and they are right."
+        },
+        {
+            "id": "senior-backend-dev",
+            "name": "Senior Backend Dev",
+            "type": "TEAM",
+            "sprint": 2,
+            "copies": [
+                3,
+                4
+            ],
+            "costCoins": 1,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "BACKEND"
+                ],
+                [
+                    "BACKEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Knows why the database is slow before you finish describing the bug."
+        },
+        {
+            "id": "fullstack-senior",
+            "name": "Full-stack Senior",
+            "type": "TEAM",
+            "sprint": 2,
+            "copies": [
+                3,
+                5
+            ],
+            "costCoins": 2,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "FRONTEND"
+                ],
+                [
+                    "BACKEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "The unicorn hire: equally at home in a Composable and in a query plan."
+        },
+        {
+            "id": "agents-with-mcp",
+            "name": "Agents with MCP",
+            "type": "TEAM",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 3,
+            "cost": [],
+            "freeWith": "claude-code",
+            "produces": [
+                [
+                    "AGENT"
+                ],
+                [
+                    "AGENT"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Give your agents real tools over MCP and they stop guessing and start shipping."
+        },
+        {
+            "id": "qa-engineer",
+            "name": "QA Engineer",
+            "type": "TEAM",
+            "sprint": 2,
+            "copies": [
+                5
+            ],
+            "costCoins": 2,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "FRONTEND",
+                    "BACKEND"
+                ]
+            ],
+            "points": 0,
+            "coins": 0,
+            "special": null,
+            "description": "Finds the bug in the feature you demoed yesterday, on both platforms."
+        },
+        {
+            "id": "sqldelight",
+            "name": "SQLDelight",
+            "type": "LIBRARY",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "Write SQL, get type-safe Kotlin; the compiler reviews your queries."
+        },
+        {
+            "id": "koog",
+            "name": "Koog",
+            "type": "LIBRARY",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "AGENT",
+                "BACKEND"
+            ],
+            "freeWith": "junie",
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "JetBrains' Kotlin framework for agents that call tools, not just chat."
+        },
+        {
+            "id": "kotlin-wasm",
+            "name": "Kotlin/Wasm",
+            "type": "LIBRARY",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "Your Compose app in the browser at near-native speed; the JS folks pretend not to be impressed."
+        },
+        {
+            "id": "amper",
+            "name": "Amper",
+            "type": "LIBRARY",
+            "sprint": 2,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": null,
+            "description": "JetBrains' build tool: a short YAML file instead of 300 lines of build.gradle.kts."
+        },
+        {
+            "id": "ios-app",
+            "name": "iOS App",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": "compose-multiplatform",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "Same Compose code, now in Swift-land; App Review still takes a week."
+        },
+        {
+            "id": "rest-api",
+            "name": "REST API",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "FRONTEND"
+            ],
+            "freeWith": "ktor",
+            "produces": [],
+            "points": 4,
+            "coins": 0,
+            "special": null,
+            "description": "Ktor routes plus a client in the app: everything else talks to this."
+        },
+        {
+            "id": "payments",
+            "name": "Payments",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "BACKEND"
+            ],
+            "freeWith": "kotlinx-serialization",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "Webhooks are just JSON you must never, ever get wrong."
+        },
+        {
+            "id": "push-notifications",
+            "name": "Push Notifications",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND",
+                "BACKEND"
+            ],
+            "freeWith": "kotlinx-coroutines",
+            "produces": [],
+            "points": 4,
+            "coins": 0,
+            "special": null,
+            "description": "FCM, APNs and a backend queue, so you can say \"We miss you!\" on two platforms."
+        },
+        {
+            "id": "onboarding",
+            "name": "Onboarding",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND"
+            ],
+            "freeWith": "koin",
+            "produces": [],
+            "points": 3,
+            "coins": 0,
+            "special": null,
+            "description": "Three swipeable screens nobody reads, A/B-tested twelve times."
+        },
+        {
+            "id": "search",
+            "name": "Search",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "FRONTEND"
+            ],
+            "freeWith": "kotlinx-serialization",
+            "produces": [],
+            "points": 4,
+            "coins": 0,
+            "special": null,
+            "description": "Full-text search: easy for ten rows, a career for ten million."
+        },
+        {
+            "id": "map-view",
+            "name": "Map View",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": "exposed",
+            "produces": [],
+            "points": 4,
+            "coins": 0,
+            "special": null,
+            "description": "A map in a Composable, plus a backend that knows where everything is."
+        },
+        {
+            "id": "crash-reporting",
+            "name": "Crash Reporting",
+            "type": "FEATURE",
+            "sprint": 2,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 3,
+            "coins": 0,
+            "special": null,
+            "description": "Finally you know about the crash before the one-star review does."
+        },
+        {
+            "id": "series-a",
+            "name": "Series A",
+            "type": "BUSINESS",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 0,
+            "special": {
+                "kind": "coinsPer",
+                "type": "TEAM",
+                "coins": 2
+            },
+            "description": "VCs invest in teams: every hire on the slide is worth more cash."
+        },
+        {
+            "id": "first-paying-customers",
+            "name": "First Paying Customers",
+            "type": "BUSINESS",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 0,
+            "special": {
+                "kind": "coinsPer",
+                "type": "FEATURE",
+                "coins": 2
+            },
+            "description": "They pay for features, so every shipped feature finally earns money."
+        },
+        {
+            "id": "kotlinconf-talk",
+            "name": "KotlinConf Talk",
+            "type": "BUSINESS",
+            "sprint": 2,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 2,
+            "special": null,
+            "description": "A live demo on stage: needs a working app, earns a following."
+        },
+        {
+            "id": "kotlin-workshop",
+            "name": "Paid Kotlin Workshop",
+            "type": "BUSINESS",
+            "sprint": 2,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 0,
+            "special": {
+                "kind": "coinsPer",
+                "type": "LIBRARY",
+                "coins": 2
+            },
+            "description": "Teach coroutines to a room of enterprise devs for a day; invoice per library you know."
+        },
+        {
+            "id": "accelerator",
+            "name": "Startup Accelerator",
+            "type": "BUSINESS",
+            "sprint": 2,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 4,
+            "special": null,
+            "description": "Three months of mentors, demo day and free cloud credits for 7% of your company."
+        },
+        {
+            "id": "tech-lead",
+            "name": "Tech Lead",
+            "type": "TEAM",
+            "sprint": 3,
+            "copies": [
+                3,
+                4
+            ],
+            "costCoins": 1,
+            "cost": [],
+            "freeWith": null,
+            "produces": [
+                [
+                    "FRONTEND"
+                ],
+                [
+                    "BACKEND"
+                ],
+                [
+                    "AGENT"
+                ]
+            ],
+            "points": 3,
+            "coins": 0,
+            "special": null,
+            "description": "Writes less code than before and somehow makes everyone ship more."
+        },
+        {
+            "id": "ai-assistant",
+            "name": "In-app AI Assistant",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "AGENT",
+                "AGENT",
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": "koog",
+            "produces": [],
+            "points": 6,
+            "coins": 0,
+            "special": null,
+            "description": "A Koog agent inside your app that actually calls your backend."
+        },
+        {
+            "id": "multi-agent-workflow",
+            "name": "Multi-agent Workflow",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "AGENT",
+                "AGENT",
+                "BACKEND"
+            ],
+            "freeWith": "agents-with-mcp",
+            "produces": [],
+            "points": 6,
+            "coins": 0,
+            "special": null,
+            "description": "One agent plans, one codes, one reviews; you approve the pull requests."
+        },
+        {
+            "id": "realtime-chat",
+            "name": "Real-time Chat",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "FRONTEND",
+                "FRONTEND"
+            ],
+            "freeWith": "ktor",
+            "produces": [],
+            "points": 6,
+            "coins": 0,
+            "special": null,
+            "description": "A Flow of messages over WebSockets: collect {} and never miss a word."
+        },
+        {
+            "id": "offline-mode",
+            "name": "Offline Mode",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": "sqldelight",
+            "produces": [],
+            "points": 6,
+            "coins": 0,
+            "special": null,
+            "description": "Works in the metro: a local SQLDelight cache syncing when the signal returns."
+        },
+        {
+            "id": "web-version",
+            "name": "Web App",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": "kotlin-wasm",
+            "produces": [],
+            "points": 7,
+            "coins": 0,
+            "special": null,
+            "description": "The same Compose UI compiled to Wasm and running in every browser."
+        },
+        {
+            "id": "scale-to-1m",
+            "name": "Scale to 1M Users",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 2,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "BACKEND"
+            ],
+            "freeWith": "kotlinx-coroutines",
+            "produces": [],
+            "points": 8,
+            "coins": 0,
+            "special": null,
+            "description": "Structured concurrency, caches, queues and a cloud bill with a comma in it."
+        },
+        {
+            "id": "app-store-featured",
+            "name": "Featured on the App Store",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 2,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "FRONTEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 8,
+            "coins": 0,
+            "special": null,
+            "description": "Polish every pixel and pay for the launch video until Apple's editors notice."
+        },
+        {
+            "id": "admin-panel",
+            "name": "Admin Panel",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND",
+                "BACKEND"
+            ],
+            "freeWith": "exposed",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "A CRUD screen over every table: the most-used feature nobody outside sees."
+        },
+        {
+            "id": "kotlinconf-keynote",
+            "name": "KotlinConf Keynote Demo",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "AGENT"
+            ],
+            "freeWith": "kotlin-wasm",
+            "produces": [],
+            "points": 6,
+            "coins": 0,
+            "special": null,
+            "description": "Your agent live-codes a Wasm app on the main stage; the Wi-Fi holds."
+        },
+        {
+            "id": "accessibility",
+            "name": "Accessibility",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "AGENT"
+            ],
+            "freeWith": "compose-multiplatform",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "contentDescription everywhere, with an agent auditing every screen."
+        },
+        {
+            "id": "home-widgets",
+            "name": "Home Screen Widgets",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "FRONTEND"
+            ],
+            "freeWith": "sqldelight",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "Your app, glanceable without opening it, fed from the local database."
+        },
+        {
+            "id": "security-audit",
+            "name": "Security Audit",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "AGENT"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "An agent fuzzes every endpoint; the auditor still finds the password in application.yaml."
+        },
+        {
+            "id": "localization",
+            "name": "Localization",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                4
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "AGENT"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 4,
+            "coins": 0,
+            "special": null,
+            "description": "An agent translates every string into 30 languages; German still overflows the button."
+        },
+        {
+            "id": "gdpr-compliance",
+            "name": "GDPR Compliance",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "BACKEND",
+                "FRONTEND"
+            ],
+            "freeWith": null,
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "A cookie banner, a data export endpoint and a lawyer who finally smiles."
+        },
+        {
+            "id": "product-hunt-launch",
+            "name": "Product Hunt Launch",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "BACKEND",
+                "AGENT"
+            ],
+            "freeWith": "amper",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "One Amper build for every platform and a launch-day upvote army."
+        },
+        {
+            "id": "dokka-docs",
+            "name": "Dokka Docs",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "BACKEND",
+                "FRONTEND",
+                "AGENT"
+            ],
+            "freeWith": "amper",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "KDoc on every public API, mostly written by agents, finally published."
+        },
+        {
+            "id": "wear-os-app",
+            "name": "Wear OS App",
+            "type": "FEATURE",
+            "sprint": 3,
+            "copies": [
+                5
+            ],
+            "costCoins": 0,
+            "cost": [
+                "FRONTEND",
+                "FRONTEND",
+                "BACKEND"
+            ],
+            "freeWith": "koin",
+            "produces": [],
+            "points": 5,
+            "coins": 0,
+            "special": null,
+            "description": "Your app on a 1.4-inch screen; the Compose code mostly just works."
+        },
+        {
+            "id": "ipo",
+            "name": "IPO",
+            "type": "BUSINESS",
+            "sprint": 3,
+            "copies": [
+                3,
+                4
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 0,
+            "special": {
+                "kind": "pointsPer",
+                "type": "FEATURE",
+                "points": 1
+            },
+            "description": "Wall Street counts shipped features, not lines of code."
+        },
+        {
+            "id": "acquihire",
+            "name": "Acquihire",
+            "type": "BUSINESS",
+            "sprint": 3,
+            "copies": [
+                3,
+                5
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": {
+                "kind": "pointsPer",
+                "type": "TEAM",
+                "points": 1
+            },
+            "description": "Big Tech buys you for the team; the product is a rounding error."
+        },
+        {
+            "id": "unicorn-valuation",
+            "name": "Unicorn Valuation",
+            "type": "BUSINESS",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 2,
+            "coins": 0,
+            "special": {
+                "kind": "pointsPer",
+                "type": "BUSINESS",
+                "points": 1
+            },
+            "description": "Every deal on the slide adds another zero to the valuation."
+        },
+        {
+            "id": "open-source-maintainer",
+            "name": "Open Source Maintainer",
+            "type": "BUSINESS",
+            "sprint": 3,
+            "copies": [
+                3
+            ],
+            "costCoins": 0,
+            "cost": [],
+            "freeWith": null,
+            "produces": [],
+            "points": 0,
+            "coins": 0,
+            "special": {
+                "kind": "pointsPer",
+                "type": "LIBRARY",
+                "points": 2
+            },
+            "description": "Your GitHub stars finally count: you know these libraries from the inside."
+        }
+    ],
+    "startups": [
+        {
+            "id": "companion",
+            "name": "Companion (dating)",
+            "produces": [
+                [
+                    "FRONTEND"
+                ]
+            ],
+            "startCoins": 5,
+            "teamDiscount": 1,
+            "sellValue": null,
+            "libraryCoins": 0,
+            "leftoverCoins": 0,
+            "coinsPerPoint": null,
+            "ability": "Team cards cost you 1💰 less.",
+            "description": "companion object: the one you always come back to. A dating app that lives and dies by its UI."
+        },
+        {
+            "id": "suspend-fun-travel",
+            "name": "suspend fun Travel",
+            "produces": [
+                [
+                    "BACKEND"
+                ]
+            ],
+            "startCoins": 4,
+            "teamDiscount": 0,
+            "sellValue": null,
+            "libraryCoins": 0,
+            "leftoverCoins": 1,
+            "coinsPerPoint": null,
+            "ability": "When a card is left over at the end of a Sprint, gain 1💰.",
+            "description": "Bookings that suspend politely while the airline API thinks about it."
+        },
+        {
+            "id": "sealed-deals",
+            "name": "Sealed Deals (e-commerce)",
+            "produces": [
+                [
+                    "BACKEND"
+                ]
+            ],
+            "startCoins": 6,
+            "teamDiscount": 0,
+            "sellValue": 4,
+            "libraryCoins": 0,
+            "leftoverCoins": 0,
+            "coinsPerPoint": null,
+            "ability": "Selling a card gives you 4💰.",
+            "description": "sealed class Order: every state handled, no else branch, no lost parcels."
+        },
+        {
+            "id": "by-lazy-studio",
+            "name": "by lazy Studio (games)",
+            "produces": [
+                [
+                    "FRONTEND"
+                ]
+            ],
+            "startCoins": 3,
+            "teamDiscount": 0,
+            "sellValue": null,
+            "libraryCoins": 2,
+            "leftoverCoins": 0,
+            "coinsPerPoint": null,
+            "ability": "Gain 2💰 whenever you build a Library.",
+            "description": "Assets load by lazy, and so does the team on Fridays."
+        },
+        {
+            "id": "nullsafe-bank",
+            "name": "NullSafe Bank",
+            "produces": [
+                [
+                    "BACKEND"
+                ]
+            ],
+            "startCoins": 4,
+            "teamDiscount": 0,
+            "sellValue": null,
+            "libraryCoins": 0,
+            "leftoverCoins": 0,
+            "coinsPerPoint": 2,
+            "ability": "At the end, your 💰 are worth 1⭐ per 2💰.",
+            "description": "A fintech where every balance is non-null and every ledger lives on the backend."
+        }
+    ]
+}
