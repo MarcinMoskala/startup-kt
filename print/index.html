@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Startup.kt · print cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#141517; --text:#DFE1E5; --muted:#9DA0A8; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"JetBrains Mono", monospace; }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+  .toggle { margin: 0 0 20px; font-size: 12px; color: var(--muted); }
+  .toggle label { cursor:pointer; }
+  .gallery { display:flex; gap:32px; flex-wrap:wrap; }
+  .gallery svg { width: min(100%, 300px); height:auto; display:block; filter: drop-shadow(0 12px 30px rgba(0,0,0,.5)); }
+  figure { margin:0; } figcaption { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  body.shot figcaption { display:none; }
+  .hide-guides .guide { display:none; }
+  .sheet { display:none; }
+  @media print {
+    @page { size: A4; margin: 10mm; }
+    body { background:#fff; }
+    main { display:none; }
+    /* Home printing: trim size (63x88 mm), 3x3 per A4, hairline cut lines between cards. */
+    .sheet { display:block; }
+    /* One explicit A4 page per 3x3 grid, centred so a back page mirrors its front exactly (flip on long edge). */
+    .page { display:grid; grid-template-columns: repeat(3, 63mm); grid-template-rows: repeat(3, 88mm); gap: 0; justify-content:center; break-after: page; }
+    .page:last-child { break-after: auto; }
+    .page > div { width:63mm; height:88mm; break-inside: avoid; }
+    .page svg { width:63mm; height:88mm; display:block; }
+    .page.fronts svg { outline: .1mm solid #bbb; outline-offset: -.1mm; }   /* inset, so it never spills onto the previous page */
+  }
+  body.shot { background:#0d0d0f; }
+  body.shot main { padding: 20px; max-width:none; }
+  body.shot h1, body.shot p.sub, body.shot .toggle { display:none; }
+  body.shot .gallery svg { width:480px; border-radius:18px; filter:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Startup.kt · karty do druku</h1>
+  <p class="sub">63 × 88 mm + 3 mm spadu. Cmd/Ctrl+P drukuje karty 3×3 na A4 w rozmiarze 1:1 (bez spadu, z liniami cięcia).</p>
+  <div class="toggle"><label><input type="checkbox" id="g" checked> pokaż linię cięcia (czerwona) i strefę bezpieczną (niebieska)</label></div>
+  <div class="gallery" id="gallery"></div>
+</main>
+<div class="sheet" id="sheet"></div>
+
+<script src="cards.js"></script>
+<!-- one data file per design batch; a missing file is simply skipped -->
+<script>
+  const DATA_FILES = ['00-examples', '01-team-s1', '02-team-s23', '03-libraries', '04-features-s1-business-s3',
+    '05-features-s2', '06-features-s3a', '07-features-s3b', '08-business-s12'];
+  document.write(DATA_FILES.map(f => `<script src="data/${f}.js" onerror="void 0"><\/script>`).join(''));
+</script>
+<script>
+  document.body.insertAdjacentHTML('afterbegin', sharedDefs());
+  const params = new URLSearchParams(location.search);
+  const shot = params.get('shot');
+  const all = sortedCards();
+  const only = params.get('only');   // e.g. ?only=team,business or ?only=ktor,rest-api
+  const backs = params.get('backs');  // ?backs=1 shows only the three card backs
+  const backShot = shot && /^back-[123]$/.test(shot) ? +shot.slice(5) : 0;   // ?shot=back-1|back-2|back-3
+  const list = backs || backShot ? [] : shot ? all.filter(c => c.id === shot)
+    : only ? all.filter(c => only.split(',').some(o => o === c.id || o === c.type || o === 's' + c.sprint)) : all;
+  const backList = backShot ? [backShot] : backs || (!shot && !only) ? [1, 2, 3] : [];
+  if (shot) document.body.classList.add('shot');
+  document.getElementById('gallery').innerHTML = list.map(c =>
+    `<figure>${renderCard(c, { guides: !shot })}<figcaption>${c.id} · ${c.copies.length}× (${c.copies.map(p => p + '+').join(', ')})</figcaption></figure>`).join('') +
+    backList.map(s => `<figure>${renderBack(s, { guides: !shot })}<figcaption>back-${s} · sprint ${SPRINTS[s][0]} (${all.filter(c => c.sprint === s).reduce((n, c) => n + c.copies.length, 0)} copies)</figcaption></figure>`).join('');
+  if (shot) document.querySelectorAll('.gallery svg').forEach(s => s.setAttribute('viewBox', '3 3 63 88'));
+
+  // Print layout: 3x3 per A4. ?print=duplex (default): each front page is followed by its back page, with the
+  // columns mirrored left<->right so that duplex printing (flip on long edge) puts every back behind its own front.
+  // ?print=fronts / ?print=backs: only the front or only the back pages (same order), for printers without duplex.
+  const printMode = ['fronts', 'backs', 'duplex'].includes(params.get('print')) ? params.get('print') : 'duplex';
+  const copies = all.flatMap(c => c.copies.map(p => ({ c, p })));
+  const pages = [];
+  for (let i = 0; i < copies.length; i += 9) pages.push(copies.slice(i, i + 9));
+  let backN = 0;
+  const frontPage = pg => `<div class="page fronts">${Array.from({ length: 9 }, (_, i) =>
+    `<div>${pg[i] ? renderCard(pg[i].c, { guides: false, players: pg[i].p, ns: 'p' }) : ''}</div>`).join('')}</div>`;
+  const backPage = pg => `<div class="page backs">${Array.from({ length: 9 }, (_, i) => {
+    const src = pg[Math.floor(i / 3) * 3 + (2 - i % 3)];   // mirrored column in the same row
+    return `<div>${src ? renderBack(src.c.sprint, { ns: 'p' + backN++ }) : ''}</div>`;
+  }).join('')}</div>`;
+  document.getElementById('sheet').innerHTML = pages.map(pg =>
+    (printMode !== 'backs' ? frontPage(pg) : '') + (printMode !== 'fronts' ? backPage(pg) : '')).join('');
+  document.title += ` (${all.length} cards, ${copies.length} copies)`;
+  document.querySelectorAll('.sheet svg').forEach(s => s.setAttribute('viewBox', '3 3 63 88'));
+  document.getElementById('g').addEventListener('change', e =>
+    document.body.classList.toggle('hide-guides', !e.target.checked));
+</script>
+</body>
+</html>

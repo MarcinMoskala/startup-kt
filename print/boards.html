@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Startup.kt · startup boards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#141517; --text:#DFE1E5; --muted:#9DA0A8; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"JetBrains Mono", monospace; }
+  main { max-width: 1400px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+  .toggle { margin: 0 0 20px; font-size: 12px; color: var(--muted); }
+  .toggle label { cursor:pointer; }
+  .gallery { display:flex; gap:32px; flex-wrap:wrap; }
+  .gallery svg { width: min(100%, 640px); height:auto; display:block; filter: drop-shadow(0 12px 30px rgba(0,0,0,.5)); }
+  figure { margin:0; } figcaption { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  .hide-guides .guide { display:none; }
+  .sheet { display:none; }
+  body.shot { background:#0d0d0f; }
+  body.shot main { padding: 20px; max-width:none; }
+  body.shot h1, body.shot p.sub, body.shot .toggle, body.shot figcaption { display:none; }
+  body.shot .gallery svg { width:1560px; border-radius:18px; filter:none; }
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    body { background:#fff; }
+    main { display:none; }
+    /* Home printing: 2 boards per A4 page at trim size (195 x 100 mm), hairline cut lines. */
+    .sheet { display:block; }
+    .page { width:210mm; height:297mm; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14mm;
+            break-after: page; page-break-after: always; }
+    .page:last-child { break-after: auto; page-break-after: auto; }
+    .page svg { width:195mm; height:100mm; outline: .1mm solid #bbb; display:block; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Startup.kt · startup boards</h1>
+  <p class="sub">195 × 100 mm + 3 mm bleed. Cmd/Ctrl+P prints 2 boards per A4 page at 1:1 trim size (no bleed, hairline cut lines). Roadmap slots are 63 mm wide, one card each.</p>
+  <div class="toggle"><label><input type="checkbox" id="g" checked> show trim (red) and safe zone (blue)</label></div>
+  <div class="gallery" id="gallery"></div>
+</main>
+<div class="sheet" id="sheet"></div>
+
+<script src="cards.js"></script>
+<script src="boards.js"></script>
+<script>
+  document.body.insertAdjacentHTML('afterbegin', sharedDefs());
+  const params = new URLSearchParams(location.search);
+  const shot = params.get('shot');
+  const all = BOARD_STARTUPS;
+  const list = shot ? all.filter(s => s.id === shot) : all;
+  if (shot) document.body.classList.add('shot');
+  document.getElementById('gallery').innerHTML = list.map(s =>
+    `<figure>${renderBoard(s, { guides: !shot })}<figcaption>${s.id}</figcaption></figure>`).join('');
+  if (shot) document.querySelectorAll('.gallery svg').forEach(s => s.setAttribute('viewBox', '3 3 195 100'));
+  const pages = [];
+  for (let i = 0; i < all.length; i += 2) pages.push(all.slice(i, i + 2));
+  document.getElementById('sheet').innerHTML = pages.map(p =>
+    `<div class="page">${p.map(s => renderBoard(s, { guides: false, ns: 'p' })).join('')}</div>`).join('');
+  document.querySelectorAll('.sheet svg').forEach(s => s.setAttribute('viewBox', '3 3 195 100'));
+  document.getElementById('g').addEventListener('change', e =>
+    document.body.classList.toggle('hide-guides', !e.target.checked));
+</script>
+</body>
+</html>

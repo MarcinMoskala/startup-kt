@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Startup.kt · character kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#141517; color:#DFE1E5; font-family:"JetBrains Mono", monospace; }
+  main { padding: 28px 28px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.sub { color:#9DA0A8; margin: 0 0 18px; font-size: 13px; }
+  h2 { font-size: 14px; color:#9DA0A8; letter-spacing:.12em; margin: 26px 0 10px; font-weight:700; }
+  .row { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; }
+  figure { margin:0; }
+  figure svg { display:block; border-radius:10px; }
+  figcaption { color:#9DA0A8; font-size: 12px; margin-top: 6px; }
+  .cards svg { width: 300px; height: auto; border-radius: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Startup.kt · character kit</h1>
+  <p class="sub">Kit.person · Kit.robot · Kit.laptop · Kit.desk · Kit.dev (print/cards.js). Panels are drawn on the card window background.</p>
+  <div id="out"></div>
+</main>
+<script src="cards.js"></script>
+<script>
+  document.body.insertAdjacentHTML('afterbegin', sharedDefs());
+  const PX = 13;   // px per mm in the panels
+  // A panel w x h mm of IDE-window background; content in panel mm coords.
+  const panel = (content, w, h, label, px = PX) => `<figure><svg viewBox="0 0 ${w} ${h}" width="${w * px}" height="${h * px}" font-family="JetBrains Mono, monospace">
+      <rect width="${w}" height="${h}" fill="${C.surface}"/><rect width="${w}" height="${h}" fill="url(#dots)"/>${content}</svg>
+      ${label ? `<figcaption>${label}</figcaption>` : ''}</figure>`;
+  const section = (title, items) => `<h2>${title}</h2><div class="row">${items.join('')}</div>`;
+  const P = (o, label, w = 18, h = 24) => panel(Kit.person(w / 2, h - 1.5, o), w, h, label);
+
+  let html = '';
+  html += section('POSES', [
+    P({ pose: 'bust' }, "pose 'bust'"),
+    P({ pose: 'stand', hair: 'long', hairColor: Kit.HAIR.auburn, top: C.cls, skin: Kit.SKIN[0] }, "pose 'stand'"),
+    P({ pose: 'point', hair: 'side', top: C.backend, topStyle: 'hoodie', skin: Kit.SKIN[3], hairColor: Kit.HAIR.black }, "pose 'point'", 20),
+    P({ pose: 'present', hair: 'bun', hairColor: Kit.HAIR.black, skin: Kit.SKIN[2], top: '#E29A2F', topStyle: 'blazer', mood: 'talk' }, "pose 'present'", 20),
+    panel(Kit.dev(14, 20, { hair: 'curly', hairColor: Kit.HAIR.black, skin: Kit.SKIN[4], top: C.frontend, topStyle: 'hoodie', accessory: 'sprout' }), 28, 24, 'Kit.dev (bust + laptop + desk)'),
+  ]);
+  html += section('HAIR', ['short', 'side', 'long', 'bun', 'curly', 'buzz', 'bald', 'grey'].map((h, i) =>
+    P({ hair: h, hairColor: [Kit.HAIR.brown, Kit.HAIR.black, Kit.HAIR.blonde, Kit.HAIR.chestnut, Kit.HAIR.black, Kit.HAIR.black, Kit.HAIR.brown, undefined][i],
+        skin: Kit.SKIN[[1, 0, 0, 2, 4, 3, 1, 0][i]], top: [C.frontend, C.backend, C.cls, C.kw, C.agent, '#26A68A', '#3D8BFD', '#6B7080'][i] }, `hair '${h}'`, 16, 20)));
+  html += section('SKIN (Kit.SKIN[0..4])', Kit.SKIN.map((s, i) => P({ skin: s, hair: ['side', 'long', 'curly', 'short', 'buzz'][i], hairColor: [Kit.HAIR.blonde, Kit.HAIR.brown, Kit.HAIR.black, Kit.HAIR.black, Kit.HAIR.black][i], top: C.backend }, `skin ${i}`, 16, 20)));
+  html += section('TOPS', ['tee', 'hoodie', 'shirt', 'blazer'].map((t, i) => P({ topStyle: t, top: [C.frontend, C.backend, '#E8EAED', '#3F4A63'][i], hair: ['short', 'side', 'bun', 'grey'][i], skin: Kit.SKIN[i + 1] }, `topStyle '${t}'`, 16, 20)));
+  html += section('EXTRAS', [
+    P({ glasses: true, hair: 'side', hairColor: Kit.HAIR.black, top: C.fn, topStyle: 'shirt' }, 'glasses', 16, 20),
+    P({ beard: true, hair: 'short', hairColor: Kit.HAIR.chestnut, top: C.kw, topStyle: 'hoodie', skin: Kit.SKIN[0] }, 'beard', 16, 20),
+    P({ headset: true, hair: 'long', hairColor: Kit.HAIR.black, top: '#26A68A', skin: Kit.SKIN[2] }, 'headset', 16, 20),
+    P({ accessory: 'sprout', hair: 'short', top: C.frontend, mood: 'happy' }, "accessory 'sprout'", 16, 22),
+    P({ accessory: 'horn', hair: 'long', hairColor: Kit.HAIR.pink, top: C.agent, topStyle: 'hoodie', skin: Kit.SKIN[1] }, "accessory 'horn'", 16, 22),
+    P({ accessory: 'halo', hair: 'grey', top: '#E8EAED', topStyle: 'blazer', beard: true, mood: 'happy' }, "accessory 'halo'", 16, 22),
+    P({ accessory: 'crown', hair: 'curly', hairColor: Kit.HAIR.brown, top: C.gold, topStyle: 'blazer', skin: Kit.SKIN[3], mood: 'grin' }, "accessory 'crown'", 16, 22),
+  ]);
+  html += section('MOODS', ['smile', 'happy', 'grin', 'neutral', 'talk'].map(m => P({ mood: m, hair: 'side', top: C.frontend }, `mood '${m}'`, 14, 18)));
+  html += section('ROBOT', [
+    ...['happy', 'focus', 'scan', 'neutral'].map(e => panel(Kit.robot(9, 14.5, { expression: e }), 18, 16, `expression '${e}'`)),
+    panel(Kit.robot(10, 21, { body: true, expression: 'happy', arms: 'wave' }), 20, 23, "body, arms 'wave'"),
+    panel(Kit.robot(10, 21, { body: true, expression: 'focus' }), 20, 23, "body, arms 'down'"),
+    panel(Kit.robot(10, 21, { body: true, expression: 'scan', color: C.frontend }), 20, 23, "color C.frontend"),
+  ]);
+  html += section('PROPS', [
+    panel(Kit.laptop(9, 11) + Kit.desk(9, 11, 16), 18, 14, "laptop 'back' + desk"),
+    panel(Kit.laptop(9, 11, 1, { view: 'front' }) + Kit.desk(9, 11, 16), 18, 14, "laptop 'front'"),
+    panel(Kit.desk(11, 4, 18, { legs: true }), 22, 12, 'desk legs'),
+  ]);
+
+  // At print size: mock cards that use the kit (not part of the deck).
+  const demo = [
+    { id: 'kit-a', name: 'Junior Compose Dev', type: 'team', sprint: 1, copies: [3], points: 0, file: 'Greeting.kt',
+      effects: [{ kind: 'produces', units: [['frontend']] }], code: [[C.fn, 'Text'], [C.text, '('], [C.str, '"Hi"'], [C.text, ')']], comment: 'kit demo',
+      art: () => Kit.dev(22, 48.5, { accessory: 'sprout', hair: 'short', top: C.frontend, skin: Kit.SKIN[1] }) + phone(42, 30.5) },
+    { id: 'kit-b', name: 'Tech Lead', type: 'team', sprint: 3, copies: [3], points: 3, file: 'TechLead.kt',
+      effects: [{ kind: 'produces', units: [['frontend'], ['backend'], ['agent']] }], code: [[C.text, 'team.'], [C.fn, 'forEach'], [C.text, ' { }']], comment: 'kit demo',
+      art: () => Kit.person(22, 50, { pose: 'point', hair: 'grey', glasses: true, beard: true, top: '#3F4A63', topStyle: 'blazer', skin: Kit.SKIN[0] }) +
+        Kit.robot(44, 49, { body: true, k: .95, expression: 'focus' }) },
+    { id: 'kit-c', name: 'Agents with MCP', type: 'team', sprint: 2, copies: [3], points: 0, file: 'Agents.kt',
+      effects: [{ kind: 'produces', units: [['agent'], ['agent']] }], code: [[C.fn, 'agent'], [C.text, ' { }']], comment: 'kit demo',
+      art: () => Kit.robot(24, 48, { expression: 'happy', k: 1.1 }) + Kit.robot(46, 48, { expression: 'scan', k: 1.1 }) },
+    { id: 'kit-d', name: 'KotlinConf Talk', type: 'business', sprint: 2, copies: [3], points: 2, file: 'Talk.kt',
+      effects: [{ kind: 'tile', icon: 'coin', amount: 2, label: 'NOW', text: '+2 coins from the bank' }], code: [[C.fn, 'talk'], [C.text, '()']], comment: 'kit demo',
+      art: () => Kit.person(27, 50, { pose: 'present', hair: 'bun', hairColor: Kit.HAIR.black, skin: Kit.SKIN[2], top: C.cls, topStyle: 'blazer', mood: 'talk' }) + phone(44, 30.5) },
+  ];
+  demo.forEach(c => { ART[c.id] = c.art; });
+  html += `<h2>AT CARD SIZE</h2><div class="row cards">${demo.map(c => renderCard(c, { guides: false })).join('')}</div>`;
+  document.getElementById('out').innerHTML = html;
+  document.querySelectorAll('.cards svg').forEach(s => s.setAttribute('viewBox', '3 3 63 88'));
+</script>
+</body>
+</html>
