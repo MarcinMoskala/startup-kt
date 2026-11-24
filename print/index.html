@@ -22,17 +22,19 @@
   .hide-guides .guide { display:none; }
   .sheet { display:none; }
   @media print {
-    @page { size: A4; margin: 10mm; }
+    /* Cut-ready A4 sheets: 3x3 cards, each with 1.5 mm bleed, so neighbours sit 3 mm apart (a slightly-off cut never shows
+       the next card's colour). Crop marks in the page margin line up with every cut. The grid is centred, so a back page
+       mirrors its front exactly when printed duplex (flip on long edge). Print at 100% / actual size. */
+    @page { size: A4 portrait; margin: 0; }
     body { background:#fff; }
     main { display:none; }
-    /* Home printing: trim size (63x88 mm), 3x3 per A4, hairline cut lines between cards. */
     .sheet { display:block; }
-    /* One explicit A4 page per 3x3 grid, centred so a back page mirrors its front exactly (flip on long edge). */
-    .page { display:grid; grid-template-columns: repeat(3, 63mm); grid-template-rows: repeat(3, 88mm); gap: 0; justify-content:center; break-after: page; }
-    .page:last-child { break-after: auto; }
-    .page > div { width:63mm; height:88mm; break-inside: avoid; }
-    .page svg { width:63mm; height:88mm; display:block; }
-    .page.fronts svg { outline: .1mm solid #bbb; outline-offset: -.1mm; }   /* inset, so it never spills onto the previous page */
+    .page { position:relative; width:210mm; height:297mm; overflow:hidden; break-after: page; page-break-after: always; }
+    .page:last-child { break-after: auto; page-break-after: auto; }
+    .grid { position:absolute; left:6mm; top:12mm; display:grid; grid-template-columns: repeat(3, 66mm); grid-template-rows: repeat(3, 91mm); }
+    .grid > div { width:66mm; height:91mm; }
+    .grid svg { width:66mm; height:91mm; display:block; }
+    .marks { position:absolute; left:0; top:0; width:210mm; height:297mm; }
   }
   body.shot { background:#0d0d0f; }
   body.shot main { padding: 20px; max-width:none; }
@@ -43,7 +45,7 @@
 <body>
 <main>
   <h1>Startup.kt · karty do druku</h1>
-  <p class="sub">63 × 88 mm + 3 mm spadu. Cmd/Ctrl+P drukuje karty 3×3 na A4 w rozmiarze 1:1 (bez spadu, z liniami cięcia).</p>
+  <p class="sub">63 × 88 mm + 3 mm spadu. Cmd/Ctrl+P drukuje karty 3×3 na A4 w skali 1:1 (drukuj w 100%), ze spadem i znacznikami cięcia.</p>
   <div class="toggle"><label><input type="checkbox" id="g" checked> pokaż linię cięcia (czerwona) i strefę bezpieczną (niebieska)</label></div>
   <div class="gallery" id="gallery"></div>
 </main>
@@ -81,16 +83,26 @@
   const pages = [];
   for (let i = 0; i < copies.length; i += 9) pages.push(copies.slice(i, i + 9));
   let backN = 0;
-  const frontPage = pg => `<div class="page fronts">${Array.from({ length: 9 }, (_, i) =>
-    `<div>${pg[i] ? renderCard(pg[i].c, { guides: false, players: pg[i].p, ns: 'p' }) : ''}</div>`).join('')}</div>`;
-  const backPage = pg => `<div class="page backs">${Array.from({ length: 9 }, (_, i) => {
+  // Crop marks (page mm): grid at (6, 12), cells 66x91 incl. 1.5 mm bleed, so trims are at 7.5 + 66i (+63) and 13.5 + 91j (+88).
+  const cropMarks = (() => {
+    const xs = [0, 1, 2].flatMap(i => [7.5 + 66 * i, 70.5 + 66 * i]);
+    const ys = [0, 1, 2].flatMap(j => [13.5 + 91 * j, 101.5 + 91 * j]);
+    const l = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    return `<svg class="marks" viewBox="0 0 210 297" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-width=".2">` +
+      xs.map(x => l(x, 4, x, 10.5) + l(x, 286.5, x, 293)).join('') +
+      ys.map(y => l(1.5, y, 4.5, y) + l(205.5, y, 208.5, y)).join('') +
+      `</g><text x="105" y="295.2" font-size="2.2" font-family="JetBrains Mono, monospace" fill="#888" text-anchor="middle">Startup.kt · 63 × 88 mm · print at 100% · cut on the marks</text></svg>`;
+  })();
+  const frontPage = pg => `<div class="page fronts"><div class="grid">${Array.from({ length: 9 }, (_, i) =>
+    `<div>${pg[i] ? renderCard(pg[i].c, { guides: false, players: pg[i].p, ns: 'p' }) : ''}</div>`).join('')}</div>${cropMarks}</div>`;
+  const backPage = pg => `<div class="page backs"><div class="grid">${Array.from({ length: 9 }, (_, i) => {
     const src = pg[Math.floor(i / 3) * 3 + (2 - i % 3)];   // mirrored column in the same row
     return `<div>${src ? renderBack(src.c.sprint, { ns: 'p' + backN++ }) : ''}</div>`;
-  }).join('')}</div>`;
+  }).join('')}</div></div>`;
   document.getElementById('sheet').innerHTML = pages.map(pg =>
     (printMode !== 'backs' ? frontPage(pg) : '') + (printMode !== 'fronts' ? backPage(pg) : '')).join('');
   document.title += ` (${all.length} cards, ${copies.length} copies)`;
-  document.querySelectorAll('.sheet svg').forEach(s => s.setAttribute('viewBox', '3 3 63 88'));
+  document.querySelectorAll('.sheet .grid svg').forEach(s => s.setAttribute('viewBox', '1.5 1.5 66 91'));   // trim + 1.5 mm bleed
   document.getElementById('g').addEventListener('change', e =>
     document.body.classList.toggle('hide-guides', !e.target.checked));
 </script>

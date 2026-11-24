@@ -25,15 +25,15 @@
   body.shot h1, body.shot p.sub, body.shot .toggle, body.shot figcaption { display:none; }
   body.shot .gallery svg { width:1560px; border-radius:18px; filter:none; }
   @media print {
+    /* Cut-ready A4: 2 boards per page, each with 3 mm bleed (201 x 106 mm), crop marks at the 195 x 100 mm trim. Print at 100%. */
     @page { size: A4 portrait; margin: 0; }
     body { background:#fff; }
     main { display:none; }
-    /* Home printing: 2 boards per A4 page at trim size (195 x 100 mm), hairline cut lines. */
     .sheet { display:block; }
-    .page { width:210mm; height:297mm; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14mm;
-            break-after: page; page-break-after: always; }
+    .page { position:relative; width:210mm; height:297mm; overflow:hidden; break-after: page; page-break-after: always; }
     .page:last-child { break-after: auto; page-break-after: auto; }
-    .page svg { width:195mm; height:100mm; outline: .1mm solid #bbb; display:block; }
+    .page .board { position:absolute; left:4.5mm; width:201mm; height:106mm; display:block; }
+    .marks { position:absolute; left:0; top:0; width:210mm; height:297mm; }
   }
 </style>
 </head>
@@ -60,9 +60,21 @@
   if (shot) document.querySelectorAll('.gallery svg').forEach(s => s.setAttribute('viewBox', '3 3 195 100'));
   const pages = [];
   for (let i = 0; i < all.length; i += 2) pages.push(all.slice(i, i + 2));
+  // Boards (with bleed) at top 32.5 mm and 158.5 mm; trims at x 7.5..202.5, y 35.5..135.5 and 161.5..261.5.
+  const TOPS = [32.5, 158.5];
+  const marks = n => {
+    const l = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    let s = '';
+    TOPS.slice(0, n).forEach(t => {
+      const y1 = t + 3, y2 = t + 103;
+      [7.5, 202.5].forEach(x => { s += l(x, t - 8, x, t - 1.5) + l(x, t + 107.5, x, t + 114); });
+      [y1, y2].forEach(y => { s += l(0.5, y, 3.5, y) + l(206.5, y, 209.5, y); });
+    });
+    return `<svg class="marks" viewBox="0 0 210 297" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-width=".2">${s}</g>` +
+      `<text x="105" y="290" font-size="2.2" font-family="JetBrains Mono, monospace" fill="#888" text-anchor="middle">Startup.kt · boards 195 × 100 mm · print at 100% · cut on the marks</text></svg>`;
+  };
   document.getElementById('sheet').innerHTML = pages.map(p =>
-    `<div class="page">${p.map(s => renderBoard(s, { guides: false, ns: 'p' })).join('')}</div>`).join('');
-  document.querySelectorAll('.sheet svg').forEach(s => s.setAttribute('viewBox', '3 3 195 100'));
+    `<div class="page">${p.map((s, i) => renderBoard(s, { guides: false, ns: 'p' }).replace('<svg ', `<svg class="board" style="top:${TOPS[i]}mm" `)).join('')}${marks(p.length)}</div>`).join('');
   document.getElementById('g').addEventListener('change', e =>
     document.body.classList.toggle('hide-guides', !e.target.checked));
 </script>
