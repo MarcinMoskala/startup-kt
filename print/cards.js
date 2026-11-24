@@ -657,12 +657,13 @@ function effectBlocks(card) {
   return out;
 }
 
-function renderCard(card, { guides = true, players = card.copies[0], ns = 'g' } = {}) {
+function renderCard(card, { guides = true, players = card.copies[0], ns = 'g', artWin = 0 } = {}) {
+  // artWin > 0: fixed art-window height and no effect blocks (used to export the art for the game app)
   const t = TYPES[card.type];
   const uid = `${ns}-${card.id}-${players}`;   // ns keeps ids unique when the same card is on the page twice (gallery + print sheet)
   const [roman, sprintName] = SPRINTS[card.sprint];
   const eh = effectsHeight(card);
-  const winH = EFFECT_BOTTOM - eh - (eh ? 2.6 : 0) - 25;   // no effects: the window reaches down to the code block
+  const winH = artWin || EFFECT_BOTTOM - eh - (eh ? 2.6 : 0) - 25;   // no effects: the window reaches down to the code block
   // Art is drawn for a 56x21 mm area (x 6.5..62.5, y 29..50); scale it down if the window is shorter, centre it if taller.
   // card.artH: height of the drawn art (default 21), always centred on y 39.5 in art coordinates.
   const artH = card.artH || 21;
@@ -702,7 +703,7 @@ function renderCard(card, { guides = true, players = card.copies[0], ns = 'g' } 
   </g>
   <rect x="6.5" y="25" width="56" height="${winH}" rx="1.4" fill="none" stroke="${C.border}" stroke-width=".3"/>
 
-  ${effectBlocks(card)}
+  ${artWin ? '' : effectBlocks(card)}
 
   <!-- flavor as code -->
   <rect x="6.5" y="73.8" width="56" height="8.4" rx="1.2" fill="${C.code}"/>

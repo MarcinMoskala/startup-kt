@@ -43,6 +43,10 @@
   if (png) {
     document.body.classList.add('png');
     if (png === 'card') { const c = CARDS.find(c => c.id === q.get('id')); pages = [renderCard(c, { guides: false, players: +q.get('p') || c.copies[0] })]; }
+    if (png === 'art') {   // just the IDE art window (56 x 30 mm) for the game app
+      const c = CARDS.find(c => c.id === q.get('id'));
+      pages = [renderCard(c, { guides: false, artWin: 30, ns: 'a' }).replace('viewBox="0 0 69 94"', 'viewBox="6.5 25 56 30" preserveAspectRatio="xMidYMid slice"')];
+    }
     if (png === 'back') pages = [renderBack(+q.get('s'), {})];
     if (png === 'board') pages = [renderBoard(BOARD_STARTUPS.find(s => s.id === q.get('id')), { guides: false })];
   } else if (part === 'fronts') {
