@@ -1,6 +1,6 @@
 # Startup.kt: zlecenie druku
 
-Gra karciana: 75 kart + 5 plansz startupów na jeden komplet. Nakład: **___ kompletów**.
+Gra karciana. Jeden komplet: **75 kart, 5 plansz startupów, instrukcja (12 stron) i pudełko (dno + wieko)**. Nakład: **___ kompletów**.
 
 ## 1. Karty
 
@@ -40,18 +40,56 @@ Gra karciana: 75 kart + 5 plansz startupów na jeden komplet. Nakład: **___ kom
 
 Na dolnej krawędzi planszy znajdują się 3 pola, każde szerokości karty (63 mm). Gracze wsuwają pod nie karty, więc plansza musi być sztywna i mieć równo przyciętą dolną krawędź.
 
-## 3. Informacje techniczne o plikach
+## 3. Instrukcja
+
+| | |
+|---|---|
+| Format netto | **100 × 190 mm** (pionowo) |
+| Format brutto (plik) | **106 × 196 mm**, spad 3 mm |
+| Objętość | **12 stron**, w tym okładka (strona 1 i 12) |
+| Oprawa | **zeszytowa**, 2 zszywki (szycie drutem) |
+| Druk | 4+4, pełny kolor, ciemne tło na wszystkich stronach |
+| Materiał (propozycja) | środek kreda mat 150–170 g/m². Okładka może być z tego samego papieru (self-cover) albo 250 g/m² z folią matową |
+
+**Plik:** `rules-12-pages-106x196mm.pdf`, 12 stron w kolejności czytania. Impozycja jest po stronie drukarni.
+
+## 4. Pudełko
+
+| | |
+|---|---|
+| Typ | **dwuczęściowe, z nasuwanym wiekiem** (dno + wieko). Każda część to jeden wykrojnik z klapkami klejonymi w narożnikach |
+| Wnętrze dna | **203 × 108 × 32 mm** (mieści plansze 195 × 100 mm, 75 kart w dwóch stosach i instrukcję) |
+| Wymiary zewnętrzne po zamknięciu | ok. **208 × 111 × 33 mm** |
+| Arkusz dna (ze spadem) | **275 × 179 mm** |
+| Arkusz wieka (ze spadem) | **273 × 176 mm** |
+| Materiał (założenie) | karton 350–400 g/m², grubość ok. **0,5 mm**. Przy innej grubości wykrojnik trzeba przeliczyć |
+| Druk | 4+0 (zewnątrz). Środek bez druku |
+| Uszlachetnienie | folia matowa. **Bez folii i lakieru na klapkach do klejenia** (pomarańczowe pola na wykrojniku) albo klej do folii |
+
+**Pliki pudełka** (osobno dla dna `base` i wieka `lid`, wszystkie w tych samych współrzędnych arkusza):
+- `box-<część>-art.pdf`: sama grafika ze spadem.
+- `box-<część>-dieline.pdf`: sam wykrojnik. Linie:
+  - cięcie: ciągła magenta #EC008C,
+  - big: przerywana cyan #00AEEF,
+  - klej: pomarańczowe kreskowanie.
+- `box-<część>-proof.pdf`: grafika z nałożonym wykrojnikiem, do sprawdzenia.
+- `BOX-NOTES.md`: wymiary, legenda wykrojnika i kolejność składania.
+
+Jeśli drukarnia ma własny standardowy wykrojnik pudełka z wiekiem o tych wymiarach, można go użyć, a grafikę dopasować do niego.
+
+## 5. Informacje techniczne o plikach
 
 - **Kolor:** pliki są w RGB (sRGB). Proszę o konwersję do CMYK po stronie drukarni i o **proof / wydruk próbny** przed nakładem.
   - Karty mają ciemne tło (#1E1F22). Proszę zwrócić uwagę, żeby nie wyszło szare ani nie zalało detali.
-- **Grafika i fonty:** grafika jest wektorowa (PDF). Font JetBrains Mono (licencja OFL) jest osadzony w PDF.
+- **Grafika i fonty:** grafika jest wektorowa (PDF). Fonty JetBrains Mono i Inter (licencja OFL) są osadzone w PDF.
 - **Znaczniki cięcia:** pliki nie mają znaczników, bo impozycja jest po stronie drukarni.
 - **Arkusze A4:** w folderze `home-print/` są arkusze A4 ze znacznikami do wydruku próbnego w domu. Nie są przeznaczone dla drukarni.
 
-## 4. Pytania do drukarni
+## 6. Pytania do drukarni
 
 1. Czy przyjmujecie pliki RGB, czy mam dostarczyć CMYK (z jakim profilem, np. ISO Coated v2 / FOGRA39)?
 2. Czy spad 3 mm jest OK?
 3. Jaki jest minimalny nakład i czy możliwy jest jeden komplet próbny?
 4. Czy robicie zaokrąglanie narożników i jakie promienie macie (R 3 / R 3,5 mm)?
-5. Czy możecie dodatkowo zapakować komplet (folia/banderola), albo jakie pudełko polecacie dla 75 kart + 5 plansz 195 × 100 mm?
+5. Czy zrobicie pudełko z mojego wykrojnika (czy macie ploter tnący lub wykrojnik), czy wolicie swój standardowy? Jaki karton i jaka grubość?
+6. Instrukcja: czy szyjecie zeszytowo format 100 × 190 mm i jaki papier polecacie przy ciemnym tle?

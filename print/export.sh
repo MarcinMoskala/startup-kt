@@ -22,11 +22,19 @@ pdf "$HOME_DIR/cards-duplex-A4.pdf" "index.html?print=duplex"
 pdf "$HOME_DIR/cards-fronts-A4.pdf" "index.html?print=fronts"
 pdf "$HOME_DIR/cards-backs-A4.pdf"  "index.html?print=backs"
 pdf "$HOME_DIR/boards-A4.pdf"       "boards.html"
+pdf "$HOME_DIR/rules-booklet-A4-duplex-short-edge.pdf" "rules.html?print=home"
+pdf "$HOME_DIR/box-A4.pdf"          "box.html?print=home"
 
 echo "Print shop (one design per page, final size + 3 mm bleed):"
 pdf "$SHOP/cards-fronts-69x94mm.pdf" "printshop.html?part=fronts"
 pdf "$SHOP/cards-backs-69x94mm.pdf"  "printshop.html?part=backs"
 pdf "$SHOP/boards-201x106mm.pdf"     "printshop.html?part=boards"
+pdf "$SHOP/rules-12-pages-106x196mm.pdf" "rules.html?print=pages"
+for piece in lid base; do
+  pdf "$SHOP/box-$piece-art.pdf"      "box.html?part=$piece"
+  pdf "$SHOP/box-$piece-dieline.pdf"  "box.html?part=$piece-dieline"
+  pdf "$SHOP/box-$piece-proof.pdf"    "box.html?part=$piece-combined"
+done
 
 # Manifest of printed cards (deck order = page order of the PDFs) and the PNG list.
 node -e '
@@ -49,7 +57,7 @@ for id in companion suspend-fun-travel sealed-deals by-lazy-studio nullsafe-bank
   png "$SHOP/png/boards/$id.png" 2374,1252 "printshop.html?png=board&id=$id"
 done
 rm "$OUT/.cards.txt"
-cp ZAMOWIENIE-DRUKARNIA.md "$SHOP/"
+cp ZAMOWIENIE-DRUKARNIA.md BOX-NOTES.md "$SHOP/"
 (cd "$OUT" && zip -qr startup-kt-print-shop.zip print-shop home-print)
 echo "  $(ls "$SHOP/png/cards" | wc -l | tr -d ' ') card fronts, 3 backs, 5 boards"
 echo "Done: $OUT/ (send $OUT/startup-kt-print-shop.zip to the print shop)"

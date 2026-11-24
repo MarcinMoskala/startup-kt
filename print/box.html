@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Startup.kt · game box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<!--
+  Game box: two-piece telescoping box (base + lid), one die-cut sheet each. Notes: BOX-NOTES.md.
+    ?view=preview (default)   lid top, 3D mockups (closed / open), all sides
+    ?view=top | sides | mockup | dielines   single preview panels (for the PNGs in previews/box/)
+    ?part=lid | base                         print-shop art: one page = die-line sheet incl. 3 mm bleed, art only
+    ?part=lid-dieline | base-dieline         die-line only (cut / crease / glue), same sheet coordinates
+    ?part=lid-combined | base-combined       art + die-line overlay, for proofing
+    ?print=home                              A4 landscape, one piece per page, art + thin cut/fold lines + crop marks
+-->
+<style>
+  :root { --bg:#141517; --text:#DFE1E5; --muted:#9DA0A8; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:"JetBrains Mono", monospace; }
+  main { max-width: 1400px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 20px; margin: 0 0 4px; } h2 { font-size: 13px; color: var(--muted); font-weight: 700; letter-spacing: .08em; margin: 36px 0 12px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+  a { color: #57AAF7; }
+  .shadow { filter: drop-shadow(0 14px 30px rgba(0,0,0,.55)); }
+  .row { display:flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  figure { margin: 0; } figcaption { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  .fit svg { width: 100%; height: auto; }
+
+  /* 3D mockup */
+  .stage { position:relative; width: 100%; height: 560px; perspective: 2400px; perspective-origin: 50% 30%; overflow: hidden;
+    background: radial-gradient(ellipse at 50% 85%, #2a2b31 0%, #18191c 60%, #111214 100%); border-radius: 14px; }
+  .scene3 { position:absolute; left:47%; top:56%; transform-style: preserve-3d; }
+  .p3 { position:absolute; left:0; top:0; transform-style: preserve-3d; }
+  .f3 { position:absolute; left:0; top:0; overflow:hidden; backface-visibility: hidden; }
+  .f3 > svg { position:absolute; inset:0; width:100%; height:100%; }
+  .f3 > i { position:absolute; inset:0; pointer-events:none; }
+  .shadow3 { position:absolute; left:0; top:0; transform: rotateX(90deg); background: radial-gradient(ellipse, rgba(0,0,0,.55) 30%, rgba(0,0,0,0) 70%); }
+  .contents { position:absolute; inset:0; background:#D8D3C8; }
+  .contents > svg { position:absolute; left:3%; top:4%; width:94%; height:92%; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+  .stack { position:absolute; border-radius: 7px; overflow:hidden; box-shadow: 2px 3px 0 #c9c4b8, 4px 6px 0 #b9b4a8, 6px 10px 14px rgba(0,0,0,.55); }
+  .stack svg { display:block; }
+
+  /* print pages */
+  body.part, body.home { background:#fff; }
+  .pg { break-after: page; page-break-after: always; position: relative; overflow: hidden; }
+  .pg:last-child { break-after: auto; page-break-after: auto; }
+  .home .pg { width: 297mm; height: 210mm; }
+  .home .pg > svg.piece { position:absolute; }
+  .home .pg > svg.marks { position:absolute; left:0; top:0; }
+</style>
+<style id="pagesize"></style>
+</head>
+<body>
+<script src="cards.js"></script>
+<script>
+  const DATA_FILES = ['00-examples', '01-team-s1', '02-team-s23', '03-libraries', '04-features-s1-business-s3',
+    '05-features-s2', '06-features-s3a', '07-features-s3b', '08-business-s12'];
+  document.write(DATA_FILES.map(f => `<script src="data/${f}.js"><\/script>`).join(''));
+</script>
+<script src="box.js"></script>
+<script>
+(() => {
+  document.body.insertAdjacentHTML('afterbegin', sharedDefs() + BOX.BOX_DEFS);
+  const q = new URLSearchParams(location.search);
+  const part = q.get('part'), print = q.get('print'), view = q.get('view') || 'preview';
+  const pageSize = (w, h) => { document.getElementById('pagesize').textContent = `@page { size: ${w}mm ${h}mm; margin: 0; }`; };
+  const add = html => document.body.insertAdjacentHTML('beforeend', html);
+  const L = BOX.geom('lid'), B = BOX.geom('base');
+
+  if (part) {
+    // print-shop pages: exactly the die-line sheet incl. bleed
+    const [kind, layer] = part.split('-');
+    const g = BOX.geom(kind);
+    document.body.classList.add('part');
+    pageSize(g.sheetW, g.sheetH);
+    const svg = BOX.sheetSVG(kind, { art: layer !== 'dieline', die: layer === 'dieline' ? 'print' : layer === 'combined' ? 'proof' : null });
+    add(`<div class="pg" style="width:${g.sheetW}mm;height:${g.sheetH}mm">${svg}</div>`);
+    document.title = `Startup.kt box · ${part} · ${g.sheetW} x ${g.sheetH} mm`;
+    return;
+  }
+
+  if (print === 'home') {
+    // A4 landscape, one piece per page; both pieces fit A4 (sheet incl. bleed <= 275 x 179 mm)
+    document.body.classList.add('home');
+    pageSize(297, 210);
+    const page = (kind, n) => {
+      const g = BOX.geom(kind);
+      const x0 = (297 - g.sheetW) / 2, y0 = (210 - g.sheetH) / 2 + 2.5;
+      // crop marks at the corners of the trim box, in the page margin
+      const tx0 = x0 + g.BLEED, ty0 = y0 + g.BLEED, tx1 = tx0 + g.trimW, ty1 = ty0 + g.trimH;
+      const l = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+      const m = 1.5, len = 5;
+      const marks = [[tx0, ty0, -1, -1], [tx1, ty0, 1, -1], [tx0, ty1, -1, 1], [tx1, ty1, 1, 1]].map(([x, y, dx, dy]) =>
+        l(x, y + dy * (BOX.BLEED + m), x, y + dy * (BOX.BLEED + m + len)) + l(x + dx * (BOX.BLEED + m), y, x + dx * (BOX.BLEED + m + len), y)).join('');
+      return `<div class="pg">
+        <svg class="piece" style="left:${x0}mm;top:${y0}mm" width="${g.sheetW}mm" height="${g.sheetH}mm" viewBox="0 0 ${g.sheetW} ${g.sheetH}"
+          font-family="JetBrains Mono, monospace">${BOX.artLayer(kind)}${BOX.dieLayer(kind, 'home')}</svg>
+        <svg class="marks" width="297mm" height="210mm" viewBox="0 0 297 210" font-family="JetBrains Mono, monospace">
+          <g stroke="#000" stroke-width=".2">${marks}</g>
+          <text x="${x0 + 12}" y="${y0 - 5}" font-size="3" font-weight="800" fill="#222">Startup.kt game box · ${g.label} (${n}/2)</text>
+          <text x="${x0 + g.sheetW - 12}" y="${y0 - 5}" font-size="2.3" fill="#555" text-anchor="end">A4 landscape · print at 100 % (actual size) · 250–300 g/m² card</text>
+          <text x="${x0 + 12}" y="${y0 + g.sheetH + 6}" font-size="2.2" fill="#555">Cut the solid lines. Score the dashed lines with a blunt knife + ruler on the printed side, fold away from the print. Glue the hatched flaps inside the end walls.</text>
+          <text x="${x0 + g.sheetW - 12}" y="${y0 + g.sheetH + 9.5}" font-size="2" fill="#888" text-anchor="end">${g.label.toLowerCase()} outside ${g.outer.join(' × ')} mm · inside ${g.inner.join(' × ')} mm</text>
+        </svg></div>`;
+    };
+    add(page('lid', 1) + page('base', 2));
+    document.title = 'Startup.kt box · home print (A4 landscape, 2 pages)';
+    return;
+  }
+
+  // ---------- previews ----------
+  const top = `<figure class="fit shadow">${BOX.faceSVG('lid', 'main')}</figure>`;
+  const sides = `<div style="display:grid;grid-template-columns:1fr;gap:18px">
+      <figure class="fit">${BOX.faceSVG('lid', 'front')}<figcaption>lid · front long side (${L.Ll} × ${L.H} mm)</figcaption></figure>
+      <figure class="fit">${BOX.faceSVG('lid', 'back')}<figcaption>lid · back long side</figcaption></figure>
+      <div class="row" style="flex-wrap:nowrap">
+        <figure class="fit" style="flex:1">${BOX.faceSVG('lid', 'east')}<figcaption>lid · short sides (${L.Ws} × ${L.H} mm, both ends)</figcaption></figure>
+        <figure class="fit" style="flex:1">${BOX.faceSVG('base', 'east')}<figcaption>base · short sides</figcaption></figure></div>
+      <figure class="fit">${BOX.faceSVG('base', 'front')}<figcaption>base · front long side (visible with the lid off)</figcaption></figure>
+      <figure class="fit">${BOX.faceSVG('base', 'back')}<figcaption>base · back long side</figcaption></figure>
+      <figure class="fit">${BOX.faceSVG('base', 'main')}<figcaption>base · underside</figcaption></figure></div>`;
+  const mock = `<div class="row" style="flex-wrap:nowrap">
+      <div class="stage" style="flex:1">${BOX.mockup({ open: false })}</div>
+      <div class="stage" style="flex:1">${BOX.mockup({ open: true, rx: -30, ry: -28, S: 2 })}</div></div>`;
+  const dies = `<div class="row" style="flex-wrap:nowrap">
+      <figure class="fit" style="flex:1">${BOX.sheetSVG('lid', { die: 'proof', w: '100%', h: 'auto' })}<figcaption>lid · art + die-line · ${L.sheetW} × ${L.sheetH} mm</figcaption></figure>
+      <figure class="fit" style="flex:1">${BOX.sheetSVG('base', { die: 'proof', w: '100%', h: 'auto' })}<figcaption>base · art + die-line · ${B.sheetW} × ${B.sheetH} mm</figcaption></figure></div>`;
+  const shot = q.get('view') && view !== 'preview';
+  if (shot) {
+    document.body.style.background = '#141517';
+    const pad = '<div style="padding:24px">';
+    if (view === 'top') add(`${pad}${top}</div>`);
+    if (view === 'sides') add(`${pad}${sides}</div>`);
+    if (view === 'mockup') add(`${pad}${mock}</div>`);
+    if (view === 'closed') add(`<div class="stage" style="height:100vh;border-radius:0">${BOX.mockup({ open: false, S: +q.get('s') || 2.4 })}</div>`);
+    if (view === 'open') add(`<div class="stage" style="height:100vh;border-radius:0">${BOX.mockup({ open: true, rx: -30, ry: -28, S: +q.get('s') || 2.4 })}</div>`);
+    if (view === 'dielines') add(`${pad}${dies}</div>`);
+    if (view === 'die') add(`<div style="padding:12px;background:#fff">${BOX.sheetSVG(q.get('kind') || 'lid', { art: false, die: 'print', w: '100%', h: 'auto' })}</div>`);
+    return;
+  }
+  add(`<main>
+    <h1>Startup.kt · game box</h1>
+    <p class="sub">Two-piece telescoping box for 75 cards, 5 boards and the rulebook. Inside ${B.inner.join(' × ')} mm.
+      Print-shop files: <a href="?part=lid">lid</a> · <a href="?part=base">base</a> · <a href="?part=lid-dieline">lid die-line</a> ·
+      <a href="?part=base-dieline">base die-line</a> · <a href="?part=lid-combined">lid proof</a> · <a href="?part=base-combined">base proof</a> ·
+      home build: <a href="?print=home">A4 landscape</a>. Notes: BOX-NOTES.md.</p>
+    <h2>LID TOP · ${L.Lp} × ${L.Wp} MM</h2>${top}
+    <h2>MOCKUP</h2>${mock}
+    <h2>SIDES</h2>${sides}
+    <h2>DIE-LINES (PROOF)</h2>${dies}
+  </main>`);
+})();
+</script>
+</body>
+</html>

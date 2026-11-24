@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Startup.kt · rules booklet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<!--
+  Startup.kt RULES BOOKLET: 100 x 190 mm portrait trim, 3 mm bleed (106 x 196 mm per page), saddle-stitched, 12 pages.
+  Content lives in rules.js; the cards, boards and backs on the pages are the real print designs (cards.js, boards.js, data/*).
+
+  URL modes
+    (none)              all pages as spreads, for reading on screen
+    ?page=N             one page, trimmed (100 x 190 mm), for preview screenshots; add &bleed=1 to show the bleed and
+                        trim/safe guides, &zoom=Z to change the screen scale (default 2)
+    ?print=pages        (default print mode) print-shop PDF: one 106 x 196 mm page per sheet incl. bleed, reading order 1..12,
+                        no marks (the shop imposes). Print to PDF with margins "None" and background graphics on.
+    ?print=home         home printing: A4 landscape, two pages per side, imposed as a booklet with crop marks (see below).
+
+  Home imposition (?print=home)
+    12 pages = 3 A4 sheets, each printed on both sides, 2 booklet pages per side. The PDF contains the sides in the order
+    sheet 1 front, sheet 1 back, sheet 2 front, sheet 2 back, sheet 3 front, sheet 3 back:
+        sheet 1  front: [12 | 1]   back: [2 | 11]
+        sheet 2  front: [10 | 3]   back: [4 |  9]
+        sheet 3  front: [ 8 | 5]   back: [6 |  7]
+    (left | right as you look at that side). Print double-sided at 100 % / "actual size", FLIP ON SHORT EDGE (the usual
+    setting for landscape booklets: turning the sheet over sideways puts page 2 behind page 1). Cut each sheet on the crop
+    marks (the outer edges of the two pages; there is no cut at the fold), stack the sheets in order with sheet 1 outside,
+    fold along the dashed fold mark and staple twice on the fold. The pages keep their 3 mm bleed on the outer edges;
+    the two pages of a side meet exactly at the fold, so nothing is cut there.
+-->
+<style>
+  :root {
+    --bg:#1E1F22; --deep:#18191B; --surface:#2B2D30; --surface2:#393B40; --border:#43454A;
+    --text:#DFE1E5; --muted:#9DA0A8; --faint:#7A7E85;
+    --fe:#4FB3F6; --be:#5FCB8B; --ag:#C77DFF; --gold:#F5C451; --goldDark:#B8862A; --chain:#A98BFF;
+    --team:#26A68A; --feature:#8B5CF6; --library:#3D8BFD; --business:#E29A2F;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --sans: "Inter", system-ui, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  body { background:#111214; color:var(--text); font-family:var(--sans); -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  /* ---------- screen: spreads ---------- */
+  #book { display:flex; flex-wrap:wrap; gap:14mm 0; padding:10mm; justify-content:center; }
+  .spread { display:flex; width:100%; justify-content:center; }
+  .spread .vp { width:100mm; height:190mm; overflow:hidden; position:relative; box-shadow:0 4mm 10mm rgba(0,0,0,.5); }
+  .spread .vp > .page { position:absolute; left:-3mm; top:-3mm; }
+
+  /* ---------- the page ---------- */
+  .page { width:106mm; height:196mm; position:relative; overflow:hidden; background:var(--bg); font-size:8.2pt; line-height:1.36; }
+  .page .content { position:absolute; left:11.5mm; right:11.5mm; top:11mm; bottom:14mm; display:flex; flex-direction:column; }
+  .page .folio { position:absolute; bottom:8.6mm; font-family:var(--mono); font-size:6.6pt; color:var(--faint); letter-spacing:.06em; display:flex; gap:2.2mm; align-items:center; }
+  .page.odd .folio { right:11.5mm; } .page.even .folio { left:11.5mm; flex-direction:row-reverse; }
+  .folio b { color:var(--text); font-weight:800; font-size:7.4pt; background:var(--surface2); border-radius:1mm; padding:.2mm 1.6mm; }
+
+  /* IDE tab bar used as the page header */
+  .tabbar { display:flex; align-items:stretch; height:5.6mm; background:var(--surface2); border-radius:1.4mm 1.4mm 0 0; margin-bottom:4mm; position:relative; }
+  .tabbar .dots { display:flex; gap:1.3mm; align-items:center; padding:0 2.4mm; }
+  .tabbar .dots i { width:1.5mm; height:1.5mm; border-radius:50%; display:block; }
+  .tabbar .tab { font-family:var(--mono); font-size:7pt; display:flex; align-items:center; padding:0 2.6mm; background:var(--surface); color:var(--text); border-bottom:.5mm solid var(--acc); }
+  .tabbar .kicker { margin-left:auto; font-family:var(--mono); font-size:6.4pt; color:var(--muted); letter-spacing:.14em; display:flex; align-items:center; padding-right:2.4mm; font-weight:700; }
+  h1 { font-family:var(--mono); font-weight:800; font-size:17pt; line-height:1.05; margin:0 0 2.6mm; color:#fff; letter-spacing:-.01em; }
+  h1 .acc { color:var(--acc); }
+  h2 { font-family:var(--mono); font-weight:800; font-size:9.6pt; margin:3.4mm 0 1.4mm; color:var(--acc); letter-spacing:.02em; display:flex; align-items:center; gap:1.6mm; }
+  h2::before { content:'//'; color:var(--faint); font-weight:700; }
+  h3 { font-family:var(--mono); font-weight:800; font-size:8.2pt; margin:0 0 .6mm; color:#fff; }
+  p { margin:0 0 1.8mm; }
+  .lead { font-size:8.8pt; line-height:1.4; color:#ECEDEF; }
+  b, strong { color:#fff; font-weight:700; }
+  .mono { font-family:var(--mono); }
+  .muted { color:var(--muted); }
+  .k-fe { color:var(--fe); font-weight:700; } .k-be { color:var(--be); font-weight:700; } .k-ag { color:var(--ag); font-weight:700; } .k-gold { color:var(--gold); font-weight:700; }
+  .sn { font-weight:800; color:var(--gold); margin-left:.08em; }
+  .ic { display:inline-block; width:1.22em; height:1.22em; vertical-align:-.26em; margin:0 .06em; overflow:visible; }
+  .fig { display:block; overflow:visible; }
+  .center { margin-left:auto; margin-right:auto; }
+  .grow { flex:1; }
+
+  /* numbered steps */
+  ol.steps { list-style:none; margin:0; padding:0; counter-reset:s; }
+  ol.steps > li { counter-increment:s; position:relative; padding-left:6.6mm; margin-bottom:1.9mm; }
+  ol.steps > li::before { content:counter(s); position:absolute; left:0; top:-.1mm; width:4.4mm; height:4.4mm; border-radius:50%; background:var(--acc); color:#16171A; font-family:var(--mono); font-weight:800; font-size:7.4pt; display:flex; align-items:center; justify-content:center; }
+  ul.dots { margin:0; padding:0; list-style:none; }
+  ul.dots > li { position:relative; padding-left:4mm; margin-bottom:1.5mm; }
+  ul.dots > li::before { content:''; position:absolute; left:.6mm; top:1.55mm; width:1.4mm; height:1.4mm; border-radius:.35mm; background:var(--acc); }
+
+  /* boxes */
+  .note { background:var(--deep); border-left:.7mm solid var(--acc); border-radius:0 1.2mm 1.2mm 0; padding:2mm 2.6mm; margin:1.6mm 0 2mm; }
+  .note .c { font-family:var(--mono); font-size:7pt; color:var(--faint); font-style:italic; display:block; margin-bottom:.4mm; }
+  .panel { background:var(--surface); border:.3mm solid var(--border); border-radius:1.6mm; padding:2.2mm 2.6mm; }
+  .tile { background:var(--surface); border:.35mm solid var(--c, var(--border)); border-radius:1.4mm; padding:1.8mm 2.2mm; }
+  .label { font-family:var(--mono); font-weight:700; font-size:6.4pt; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; }
+  .legend { display:grid; grid-template-columns:1fr 1fr; gap:1.5mm 3mm; }
+  .legend .it { display:grid; grid-template-columns:4.4mm 1fr; gap:1.4mm; align-items:start; line-height:1.3; }
+  .legend .it > div { padding-top:.2mm; }
+  .num { width:4.4mm; height:4.4mm; border-radius:50%; background:var(--gold); color:#2A1E04; font-family:var(--mono); font-weight:800; font-size:7.2pt; display:flex; align-items:center; justify-content:center; }
+  .legend .t { font-family:var(--mono); font-weight:800; font-size:7.2pt; color:#fff; letter-spacing:.04em; margin-right:1mm; }
+  .row { display:flex; gap:2.6mm; align-items:flex-start; }
+  table.t { width:100%; border-collapse:separate; border-spacing:0; font-size:7.9pt; line-height:1.3; }
+  table.t th { font-family:var(--mono); font-size:6.3pt; letter-spacing:.1em; color:var(--muted); text-align:left; font-weight:700; padding:0 1.2mm 1mm; }
+  table.t td { background:var(--surface); padding:1.3mm 1.2mm; border-top:.6mm solid var(--bg); vertical-align:middle; }
+  table.t td:first-child { border-radius:1.2mm 0 0 1.2mm; } table.t td:last-child { border-radius:0 1.2mm 1.2mm 0; }
+
+  /* ---------- shot mode (?page=N) ---------- */
+  body.shot { background:#0d0d0f; }
+  body.shot #book { padding:0; display:block; }
+  body.shot .vp { width:100mm; height:190mm; overflow:hidden; position:relative; }
+  body.shot .vp > .page { position:absolute; left:-3mm; top:-3mm; }
+  body.shot.bleed .vp { width:106mm; height:196mm; }
+  body.shot.bleed .vp > .page { left:0; top:0; }
+  .guides { position:absolute; inset:0; pointer-events:none; }
+
+  #print { display:none; }
+  @media print {
+    body { background:#fff; }
+    #book { display:none; }
+    #print { display:block; }
+    .sheet { position:relative; overflow:hidden; break-after:page; page-break-after:always; }
+    .sheet:last-child { break-after:auto; page-break-after:auto; }
+    .half { position:absolute; overflow:hidden; }
+    .half > .page { position:absolute; top:0; }
+    .marks { position:absolute; left:0; top:0; }
+  }
+</style>
+<style id="pagesize"></style>
+</head>
+<body>
+<div id="book"></div>
+<div id="print"></div>
+<script src="cards.js"></script>
+<script>
+  const DATA_FILES = ['00-examples', '01-team-s1', '02-team-s23', '03-libraries', '04-features-s1-business-s3',
+    '05-features-s2', '06-features-s3a', '07-features-s3b', '08-business-s12'];
+  document.write(DATA_FILES.map(f => `<script src="data/${f}.js"><\/script>`).join(''));
+</script>
+<script src="boards.js"></script>
+<script src="rules.js"></script>
+</body>
+</html>
